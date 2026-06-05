@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 type RegisterProps = {
+  language?: 'id' | 'en'
   onSwitchToLogin: () => void
 }
 
@@ -20,10 +21,58 @@ const initialForm: RegisterForm = {
   updates: true,
 }
 
-function Register({ onSwitchToLogin }: RegisterProps) {
+const registerCopy = {
+  id: {
+    name: 'Nama lengkap',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Konfirmasi password',
+    namePlaceholder: 'Contoh: Firman Syah',
+    emailPlaceholder: 'nama@email.com',
+    passwordPlaceholder: 'Minimal 8 karakter',
+    confirmPasswordPlaceholder: 'Ulangi password',
+    invalidName: 'Nama minimal 3 karakter.',
+    invalidEmail: 'Masukkan email yang valid.',
+    shortPassword: 'Password minimal 8 karakter.',
+    passwordMismatch: 'Konfirmasi password belum sama.',
+    hide: 'Hide',
+    show: 'Show',
+    updates: 'Saya setuju menerima update belajar',
+    success: 'Registrasi berhasil disimulasikan.',
+    error: 'Periksa kembali data register.',
+    submit: 'Buat akun',
+    switchCopy: 'Sudah punya akun?',
+    login: 'Login',
+  },
+  en: {
+    name: 'Full name',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm password',
+    namePlaceholder: 'Example: Firman Syah',
+    emailPlaceholder: 'name@email.com',
+    passwordPlaceholder: 'At least 8 characters',
+    confirmPasswordPlaceholder: 'Repeat password',
+    invalidName: 'Name must be at least 3 characters.',
+    invalidEmail: 'Enter a valid email.',
+    shortPassword: 'Password must be at least 8 characters.',
+    passwordMismatch: 'Password confirmation does not match.',
+    hide: 'Hide',
+    show: 'Show',
+    updates: 'I agree to receive learning updates',
+    success: 'Registration simulation succeeded.',
+    error: 'Check your registration data again.',
+    submit: 'Create account',
+    switchCopy: 'Already have an account?',
+    login: 'Login',
+  },
+}
+
+function Register({ language = 'id', onSwitchToLogin }: RegisterProps) {
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const copy = registerCopy[language]
 
   const passwordScore = useMemo(() => {
     const checks = [
@@ -40,23 +89,23 @@ function Register({ onSwitchToLogin }: RegisterProps) {
     const nextErrors: Partial<Record<keyof RegisterForm, string>> = {}
 
     if (form.name.trim().length < 3) {
-      nextErrors.name = 'Nama minimal 3 karakter.'
+      nextErrors.name = copy.invalidName
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      nextErrors.email = 'Masukkan email yang valid.'
+      nextErrors.email = copy.invalidEmail
     }
 
     if (form.password.length < 8) {
-      nextErrors.password = 'Password minimal 8 karakter.'
+      nextErrors.password = copy.shortPassword
     }
 
     if (form.confirmPassword !== form.password) {
-      nextErrors.confirmPassword = 'Konfirmasi password belum sama.'
+      nextErrors.confirmPassword = copy.passwordMismatch
     }
 
     return nextErrors
-  }, [form])
+  }, [copy, form])
 
   const isValid = Object.keys(errors).length === 0
 
@@ -78,13 +127,13 @@ function Register({ onSwitchToLogin }: RegisterProps) {
   return (
     <form className="auth-form" onSubmit={handleSubmit} noValidate>
       <label className="form-field">
-        <span>Nama lengkap</span>
+        <span>{copy.name}</span>
         <input
           type="text"
           name="name"
           value={form.name}
           onChange={updateField}
-          placeholder="Contoh: Firman Syah"
+          placeholder={copy.namePlaceholder}
           autoComplete="name"
           aria-invalid={Boolean(errors.name)}
         />
@@ -92,13 +141,13 @@ function Register({ onSwitchToLogin }: RegisterProps) {
       </label>
 
       <label className="form-field">
-        <span>Email</span>
+        <span>{copy.email}</span>
         <input
           type="email"
           name="email"
           value={form.email}
           onChange={updateField}
-          placeholder="nama@email.com"
+          placeholder={copy.emailPlaceholder}
           autoComplete="email"
           aria-invalid={Boolean(errors.email)}
         />
@@ -106,19 +155,19 @@ function Register({ onSwitchToLogin }: RegisterProps) {
       </label>
 
       <label className="form-field">
-        <span>Password</span>
+        <span>{copy.password}</span>
         <div className="password-field">
           <input
             type={showPassword ? 'text' : 'password'}
             name="password"
             value={form.password}
             onChange={updateField}
-            placeholder="Minimal 8 karakter"
+            placeholder={copy.passwordPlaceholder}
             autoComplete="new-password"
             aria-invalid={Boolean(errors.password)}
           />
           <button type="button" onClick={() => setShowPassword((current) => !current)}>
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? copy.hide : copy.show}
           </button>
         </div>
         {errors.password && <small>{errors.password}</small>}
@@ -132,13 +181,13 @@ function Register({ onSwitchToLogin }: RegisterProps) {
       </div>
 
       <label className="form-field">
-        <span>Konfirmasi password</span>
+        <span>{copy.confirmPassword}</span>
         <input
           type={showPassword ? 'text' : 'password'}
           name="confirmPassword"
           value={form.confirmPassword}
           onChange={updateField}
-          placeholder="Ulangi password"
+          placeholder={copy.confirmPasswordPlaceholder}
           autoComplete="new-password"
           aria-invalid={Boolean(errors.confirmPassword)}
         />
@@ -147,23 +196,23 @@ function Register({ onSwitchToLogin }: RegisterProps) {
 
       <label className="check-field">
         <input type="checkbox" name="updates" checked={form.updates} onChange={updateField} />
-        <span>Saya setuju menerima update belajar</span>
+        <span>{copy.updates}</span>
       </label>
 
       {submitted && (
         <div className={isValid ? 'form-message success' : 'form-message error'}>
-          {isValid ? 'Registrasi berhasil disimulasikan.' : 'Periksa kembali data register.'}
+          {isValid ? copy.success : copy.error}
         </div>
       )}
 
       <button className="btn btn-primary auth-submit select-none" type="submit">
-        Buat akun
+        {copy.submit}
       </button>
 
       <p className="auth-switch-copy">
-        Sudah punya akun?{' '}
+        {copy.switchCopy}{' '}
         <button type="button" onClick={onSwitchToLogin}>
-          Login
+          {copy.login}
         </button>
       </p>
     </form>
