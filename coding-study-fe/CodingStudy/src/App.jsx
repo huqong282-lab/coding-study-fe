@@ -1,121 +1,76 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import Login from './components/forms/Login'
+import Register from './components/forms/Register'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mode, setMode] = useState('login')
+  const isLogin = mode === 'login'
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="btn btn-primary counter select-none"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <main className="auth-page">
+      <section className="auth-hero" aria-label="Coding Study introduction">
+        <p className="eyebrow">Learning dashboard</p>
+        <h1>Coding Study</h1>
+        <p className="hero-copy">
+          Masuk ke ruang belajar tim untuk mengelola materi, latihan, dan progres
+          coding dalam satu tempat.
+        </p>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        <div className="feature-grid" aria-label="Coding Study highlights">
+          <div>
+            <span>01</span>
+            <strong>Track Progress</strong>
+            <p>Pantau modul dan latihan yang sedang berjalan.</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>Team Notes</strong>
+            <p>Simpan catatan belajar agar mudah dibagikan.</p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>Daily Practice</strong>
+            <p>Bangun kebiasaan latihan dengan alur yang jelas.</p>
+          </div>
         </div>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <section className="auth-card" aria-label={`${isLogin ? 'Login' : 'Register'} form`}>
+        <div className="auth-card-header">
+          <div>
+            <p className="eyebrow">{isLogin ? 'Welcome back' : 'Create account'}</p>
+            <h2>{isLogin ? 'Login' : 'Register'}</h2>
+          </div>
+          <div className="mode-toggle" role="tablist" aria-label="Authentication mode">
+            <button
+              type="button"
+              className={isLogin ? 'active' : ''}
+              onClick={() => setMode('login')}
+              role="tab"
+              aria-selected={isLogin}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              className={!isLogin ? 'active' : ''}
+              onClick={() => setMode('register')}
+              role="tab"
+              aria-selected={!isLogin}
+            >
+              Register
+            </button>
+          </div>
+        </div>
+
+        {isLogin ? (
+          <Login onSwitchToRegister={() => setMode('register')} />
+        ) : (
+          <Register onSwitchToLogin={() => setMode('login')} />
+        )}
+      </section>
+    </main>
   )
 }
 
