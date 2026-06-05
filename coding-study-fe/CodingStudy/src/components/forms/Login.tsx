@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 
 type LoginProps = {
+  language?: 'id' | 'en'
   onSwitchToRegister: () => void
+  onLogin?: () => void
 }
 
 type LoginForm = {
@@ -11,29 +13,63 @@ type LoginForm = {
 }
 
 const initialForm: LoginForm = {
-  email: '',
-  password: '',
+  email: 'raka@codingstudy.dev',
+  password: 'Belajar123!',
   remember: true,
 }
 
-function Login({ onSwitchToRegister }: LoginProps) {
+const loginCopy = {
+  id: {
+    invalidEmail: 'Masukkan email yang valid.',
+    shortPassword: 'Password minimal 8 karakter.',
+    emailPlaceholder: 'nama@email.com',
+    passwordPlaceholder: 'Minimal 8 karakter',
+    hide: 'Hide',
+    show: 'Show',
+    remember: 'Ingat saya',
+    forgotPassword: 'Lupa password?',
+    success: 'Login berhasil disimulasikan.',
+    error: 'Periksa kembali email dan password.',
+    submit: 'Masuk',
+    switchCopy: 'Belum punya akun?',
+    register: 'Register',
+  },
+  en: {
+    invalidEmail: 'Enter a valid email.',
+    shortPassword: 'Password must be at least 8 characters.',
+    emailPlaceholder: 'name@email.com',
+    passwordPlaceholder: 'At least 8 characters',
+    hide: 'Hide',
+    show: 'Show',
+    remember: 'Remember me',
+    forgotPassword: 'Forgot password?',
+    success: 'Login simulation succeeded.',
+    error: 'Check your email and password again.',
+    submit: 'Sign in',
+    switchCopy: 'Need an account?',
+    register: 'Register',
+  },
+}
+
+function Login({ language = 'id', onSwitchToRegister, onLogin }: LoginProps) {
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const copy = loginCopy[language]
 
   const errors = useMemo(() => {
     const nextErrors: Partial<Record<keyof LoginForm, string>> = {}
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      nextErrors.email = 'Masukkan email yang valid.'
+      nextErrors.email = copy.invalidEmail
     }
 
     if (form.password.length < 8) {
-      nextErrors.password = 'Password minimal 8 karakter.'
+      nextErrors.password = copy.shortPassword
     }
 
     return nextErrors
-  }, [form])
+  }, [copy, form])
 
   const isValid = Object.keys(errors).length === 0
 
@@ -50,6 +86,10 @@ function Login({ onSwitchToRegister }: LoginProps) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
+
+    if (isValid) {
+      onLogin?.()
+    }
   }
 
   return (
@@ -61,7 +101,7 @@ function Login({ onSwitchToRegister }: LoginProps) {
           name="email"
           value={form.email}
           onChange={updateField}
-          placeholder="nama@email.com"
+          placeholder={copy.emailPlaceholder}
           autoComplete="email"
           aria-invalid={Boolean(errors.email)}
         />
@@ -76,12 +116,12 @@ function Login({ onSwitchToRegister }: LoginProps) {
             name="password"
             value={form.password}
             onChange={updateField}
-            placeholder="Minimal 8 karakter"
+            placeholder={copy.passwordPlaceholder}
             autoComplete="current-password"
             aria-invalid={Boolean(errors.password)}
           />
           <button type="button" onClick={() => setShowPassword((current) => !current)}>
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? copy.hide : copy.show}
           </button>
         </div>
         {errors.password && <small>{errors.password}</small>}
@@ -95,27 +135,27 @@ function Login({ onSwitchToRegister }: LoginProps) {
             checked={form.remember}
             onChange={updateField}
           />
-          <span>Ingat saya</span>
+          <span>{copy.remember}</span>
         </label>
         <button className="text-button" type="button">
-          Lupa password?
+          {copy.forgotPassword}
         </button>
       </div>
 
       {submitted && (
         <div className={isValid ? 'form-message success' : 'form-message error'}>
-          {isValid ? 'Login berhasil disimulasikan.' : 'Periksa kembali email dan password.'}
+          {isValid ? copy.success : copy.error}
         </div>
       )}
 
       <button className="btn btn-primary auth-submit select-none" type="submit">
-        Masuk
+        {copy.submit}
       </button>
 
       <p className="auth-switch-copy">
-        Belum punya akun?{' '}
+        {copy.switchCopy}{' '}
         <button type="button" onClick={onSwitchToRegister}>
-          Register
+          {copy.register}
         </button>
       </p>
     </form>
