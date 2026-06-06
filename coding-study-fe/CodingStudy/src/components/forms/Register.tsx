@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 type RegisterProps = {
   language?: 'id' | 'en'
   onSwitchToLogin: () => void
+  onRegister?: (user: { name: string; email: string }) => void
 }
 
 type RegisterForm = {
@@ -38,7 +39,7 @@ const registerCopy = {
     hide: 'Hide',
     show: 'Show',
     updates: 'Saya setuju menerima update belajar',
-    success: 'Registrasi berhasil disimulasikan.',
+    success: 'Registrasi berhasil. Silakan login dengan email yang sama.',
     error: 'Periksa kembali data register.',
     submit: 'Buat akun',
     switchCopy: 'Sudah punya akun?',
@@ -60,7 +61,7 @@ const registerCopy = {
     hide: 'Hide',
     show: 'Show',
     updates: 'I agree to receive learning updates',
-    success: 'Registration simulation succeeded.',
+    success: 'Registration succeeded. Please sign in with the same email.',
     error: 'Check your registration data again.',
     submit: 'Create account',
     switchCopy: 'Already have an account?',
@@ -68,7 +69,7 @@ const registerCopy = {
   },
 }
 
-function Register({ language = 'id', onSwitchToLogin }: RegisterProps) {
+function Register({ language = 'id', onSwitchToLogin, onRegister }: RegisterProps) {
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -122,6 +123,13 @@ function Register({ language = 'id', onSwitchToLogin }: RegisterProps) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
+
+    if (isValid) {
+      onRegister?.({
+        name: form.name.trim(),
+        email: form.email.trim(),
+      })
+    }
   }
 
   return (
