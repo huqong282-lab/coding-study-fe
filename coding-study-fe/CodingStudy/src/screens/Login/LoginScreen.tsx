@@ -12,7 +12,8 @@ type LoginScreenProps = {
   onModeChange: (mode: AuthMode) => void
   onLanguageChange: (language: Language) => void
   onProgrammerPositionChange: (position: string) => void
-  onLogin: () => void
+  onLogin: (credentials: { email: string }) => void
+  onRegister: (user: { name: string; email: string }) => void
 }
 
 function LoginScreen({
@@ -23,6 +24,7 @@ function LoginScreen({
   onLanguageChange,
   onProgrammerPositionChange,
   onLogin,
+  onRegister,
 }: LoginScreenProps) {
   const isLogin = mode === 'login'
   const text = appCopy[language]
@@ -116,7 +118,11 @@ function LoginScreen({
             onLogin={onLogin}
           />
         ) : (
-          <Register language={language} onSwitchToLogin={() => onModeChange('login')} />
+          <Register
+            language={language}
+            onSwitchToLogin={() => onModeChange('login')}
+            onRegister={onRegister}
+          />
         )}
       </section>
     </main>

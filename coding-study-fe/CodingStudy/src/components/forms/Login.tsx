@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 type LoginProps = {
   language?: 'id' | 'en'
   onSwitchToRegister: () => void
-  onLogin?: () => void
+  onLogin?: (credentials: { email: string }) => void
 }
 
 type LoginForm = {
@@ -88,7 +88,7 @@ function Login({ language = 'id', onSwitchToRegister, onLogin }: LoginProps) {
     setSubmitted(true)
 
     if (isValid) {
-      onLogin?.()
+      onLogin?.({ email: form.email.trim() })
     }
   }
 
