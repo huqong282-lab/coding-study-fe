@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { courseLookup } from './data/courseCatalog'
+import CourseDetailScreen from './screens/CourseDetail/CourseDetailScreen'
 import HomeScreen from './screens/Home/HomeScreen'
 import LanguageSelectionScreen from './screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from './screens/Login/LoginScreen'
@@ -18,6 +20,7 @@ function App() {
   const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState([])
   const [registeredUser, setRegisteredUser] = useState(defaultUser)
   const [currentUser, setCurrentUser] = useState(defaultUser)
+  const [selectedCourseId, setSelectedCourseId] = useState(null)
 
   function toggleProgrammingLanguage(languageId) {
     setSelectedProgrammingLanguages((currentLanguages) =>
@@ -31,11 +34,16 @@ function App() {
     setIsAuthenticated(false)
     setHasCompletedLanguageSelection(false)
     setSelectedProgrammingLanguages([])
+    setSelectedCourseId(null)
+    setMode('login')
   }
 
   function handleRegister(user) {
     setRegisteredUser(user)
-    setMode('login')
+    setCurrentUser(user)
+    setIsAuthenticated(true)
+    setHasCompletedLanguageSelection(false)
+    setSelectedCourseId(null)
   }
 
   function handleLogin(credentials) {
@@ -46,6 +54,16 @@ function App() {
 
     setCurrentUser(matchedUser)
     setIsAuthenticated(true)
+    setHasCompletedLanguageSelection(false)
+    setSelectedCourseId(null)
+  }
+
+  function handleOpenCourse(courseId) {
+    setSelectedCourseId(courseId)
+  }
+
+  function handleBackFromCourse() {
+    setSelectedCourseId(null)
   }
 
   if (isAuthenticated && !hasCompletedLanguageSelection) {
@@ -59,6 +77,14 @@ function App() {
     )
   }
 
+  if (isAuthenticated && selectedCourseId) {
+    const selectedCourse = courseLookup[selectedCourseId]
+
+    if (selectedCourse) {
+      return <CourseDetailScreen course={selectedCourse} onBack={handleBackFromCourse} />
+    }
+  }
+
   if (isAuthenticated) {
     return (
       <HomeScreen
@@ -67,9 +93,8 @@ function App() {
         user={currentUser}
         selectedProgrammingLanguages={selectedProgrammingLanguages}
         onToggleLanguage={toggleProgrammingLanguage}
-        onLanguageChange={setLanguage}
-        onProgrammerPositionChange={setProgrammerPosition}
         onLogout={handleLogout}
+        onOpenCourse={handleOpenCourse}
       />
     )
   }
