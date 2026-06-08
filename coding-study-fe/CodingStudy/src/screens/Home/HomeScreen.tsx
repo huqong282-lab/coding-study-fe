@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { courseCatalog, languageLabels } from '../../data/courseCatalog'
 
 type Language = 'id' | 'en'
 
@@ -14,27 +15,7 @@ type HomeScreenProps = {
   onLanguageChange?: (language: Language) => void
   onProgrammerPositionChange?: (position: string) => void
   onLogout?: () => void
-}
-
-type Course = {
-  id: number
-  languageId: string
-  languageName: string
-  title: string
-  rating: number
-  modules: number
-  level: string
-}
-
-const languageLabels: Record<string, string> = {
-  javascript: 'JavaScript',
-  python: 'Python',
-  typescript: 'TypeScript',
-  java: 'Java',
-  go: 'Go',
-  sql: 'SQL',
-  dart: 'Dart',
-  kotlin: 'Kotlin',
+  onOpenCourse?: (courseId: string) => void
 }
 
 const languageOptions = Object.entries(languageLabels).map(([id, name]) => ({ id, name }))
@@ -47,90 +28,6 @@ const positionLanguageMap: Record<string, string[]> = {
   devops: ['python', 'go'],
   data: ['python', 'sql', 'java'],
 }
-
-const recommendedCourses: Course[] = [
-  {
-    id: 1,
-    languageId: 'javascript',
-    languageName: 'JavaScript',
-    title: 'JavaScript Dasar',
-    rating: 4.8,
-    modules: 12,
-    level: 'Pemula',
-  },
-  {
-    id: 2,
-    languageId: 'python',
-    languageName: 'Python',
-    title: 'Python Untuk Data',
-    rating: 4.9,
-    modules: 15,
-    level: 'Data',
-  },
-  {
-    id: 3,
-    languageId: 'javascript',
-    languageName: 'JavaScript',
-    title: 'Belajar Node.js',
-    rating: 4.7,
-    modules: 10,
-    level: 'Backend',
-  },
-  {
-    id: 4,
-    languageId: 'typescript',
-    languageName: 'TypeScript',
-    title: 'TypeScript Modern',
-    rating: 4.8,
-    modules: 11,
-    level: 'Frontend',
-  },
-  {
-    id: 5,
-    languageId: 'java',
-    languageName: 'Java',
-    title: 'Java OOP Praktis',
-    rating: 4.6,
-    modules: 13,
-    level: 'Backend',
-  },
-  {
-    id: 6,
-    languageId: 'go',
-    languageName: 'Go API Service',
-    title: 'Go API Service',
-    rating: 4.7,
-    modules: 9,
-    level: 'Cloud',
-  },
-  {
-    id: 7,
-    languageId: 'sql',
-    languageName: 'SQL',
-    title: 'SQL Query Dasar',
-    rating: 4.8,
-    modules: 8,
-    level: 'Database',
-  },
-  {
-    id: 8,
-    languageId: 'dart',
-    languageName: 'Dart',
-    title: 'Dart Untuk Flutter',
-    rating: 4.6,
-    modules: 10,
-    level: 'Mobile',
-  },
-  {
-    id: 9,
-    languageId: 'kotlin',
-    languageName: 'Kotlin',
-    title: 'Kotlin Android',
-    rating: 4.7,
-    modules: 12,
-    level: 'Mobile',
-  },
-]
 
 function normalizeSelectedLanguages(selectedLanguages: string[], programmerPosition: string) {
   if (selectedLanguages.length > 0) {
@@ -146,6 +43,7 @@ function HomeScreen({
   selectedProgrammingLanguages = [],
   onToggleLanguage,
   onLogout,
+  onOpenCourse,
 }: HomeScreenProps) {
   const learningLanguages = normalizeSelectedLanguages(
     selectedProgrammingLanguages,
@@ -162,7 +60,7 @@ function HomeScreen({
 
   const visibleCourses = useMemo(() => {
     const selectedSet = new Set(learningLanguages)
-    const matchedCourses = recommendedCourses.filter((course) => selectedSet.has(course.languageId))
+    const matchedCourses = courseCatalog.filter((course) => selectedSet.has(course.languageId))
 
     if (activeTopic === 'all') {
       return matchedCourses
@@ -171,9 +69,11 @@ function HomeScreen({
     return matchedCourses.filter((course) => course.languageId === activeTopic)
   }, [activeTopic, learningLanguages])
 
-  const displayedCourses = visibleCourses.length > 0 ? visibleCourses : recommendedCourses.slice(0, 3)
+  const displayedCourses = visibleCourses.length > 0 ? visibleCourses : courseCatalog.slice(0, 3)
   const firstName = user.name.trim().split(' ')[0] || 'Learner'
   const avatarInitial = firstName.charAt(0).toUpperCase()
+  const totalFreeCourses = courseCatalog.filter((course) => course.access === 'free').length
+  const totalPaidCourses = courseCatalog.length - totalFreeCourses
 
   return (
     <main className="home-page">
@@ -185,13 +85,13 @@ function HomeScreen({
 
         <nav className="home-nav-links" aria-label="Learning navigation">
           <a href="#classes">Kelas Saya</a>
-          <a href="#forum">Forum</a>
+          <a href="#library">Library</a>
         </nav>
 
         <div className="home-nav-actions">
           <label className="home-search">
             <span>Cari kursus</span>
-            <input type="search" placeholder="Cari..." />
+            <input type="search" placeholder="React, Python, SQL..." />
           </label>
           <button className="home-avatar-button" type="button" aria-label={`Profil ${user.name}`}>
             {avatarInitial}
@@ -200,25 +100,44 @@ function HomeScreen({
       </header>
 
       <section className="home-welcome" id="top">
-        <div>
-          <p className="home-greeting">👋 Selamat Datang, {firstName}!</p>
+        <div className="home-welcome-copy">
+          <p className="home-greeting">👋 Selamat datang, {firstName}!</p>
           <p className="home-profile-email">{user.email}</p>
+          <p className="home-headline">
+            Dashboard ini sudah siap dipakai dengan alur dummy yang lebih rapi, termasuk detail
+            kelas gratis dan berbayar.
+          </p>
+
           <div className="home-focus-row" aria-label="Fokus belajar saat ini">
-            <span>Fokus belajarmu saat ini:</span>
+            <span>Fokus belajarmu:</span>
             {learningLanguages.slice(0, 4).map((languageId) => (
               <strong key={languageId}>{languageLabels[languageId] ?? languageId}</strong>
             ))}
           </div>
         </div>
 
-        <button className="btn btn-secondary" type="button" onClick={onLogout}>
-          Logout
-        </button>
+        <div className="home-snapshot" aria-label="Ringkasan kelas">
+          <div>
+            <span>Total kelas</span>
+            <strong>{courseCatalog.length}</strong>
+          </div>
+          <div>
+            <span>Gratis</span>
+            <strong>{totalFreeCourses}</strong>
+          </div>
+          <div>
+            <span>Berbayar</span>
+            <strong>{totalPaidCourses}</strong>
+          </div>
+          <button className="btn btn-secondary" type="button" onClick={onLogout}>
+            Logout
+          </button>
+        </div>
       </section>
 
       <section className="home-content" id="classes">
         <div className="topic-filter" aria-label="Pilih topik kursus">
-          <span>Pilih Topik:</span>
+          <span>Pilih topik</span>
           <button
             className={activeTopic === 'all' ? 'is-active' : ''}
             type="button"
@@ -233,7 +152,7 @@ function HomeScreen({
               type="button"
               onClick={() => setActiveTopic(languageId)}
             >
-              {languageLabels[languageId] ?? languageId} <span aria-hidden="true">⭐</span>
+              {languageLabels[languageId] ?? languageId}
             </button>
           ))}
           <button
@@ -241,7 +160,7 @@ function HomeScreen({
             onClick={() => setIsInterestPanelOpen((current) => !current)}
             aria-expanded={isInterestPanelOpen}
           >
-            + Tambah Minat
+            + Tambah minat
           </button>
         </div>
 
@@ -249,7 +168,7 @@ function HomeScreen({
           <div className="interest-panel" aria-label="Tambah minat bahasa pemrograman">
             <div>
               <strong>Pilih bahasa tambahan</strong>
-              <p>Rekomendasi kursus akan langsung ikut berubah.</p>
+              <p>Rekomendasi kelas akan langsung menyesuaikan minat barumu.</p>
             </div>
             <div className="interest-option-grid">
               {languageOptions.map((item) => {
@@ -272,24 +191,38 @@ function HomeScreen({
           </div>
         )}
 
-        <section className="course-recommendation" aria-labelledby="recommendation-title">
+        <section className="course-recommendation" id="library" aria-labelledby="recommendation-title">
           <div className="recommendation-heading">
-            <p className="eyebrow">🎯 Rekomendasi kursus untukmu</p>
-            <h1 id="recommendation-title">Materi yang cocok dengan minatmu</h1>
+            <p className="eyebrow">🎯 Rekomendasi untukmu</p>
+            <h1 id="recommendation-title">Pilih kelas lalu lihat detailnya dulu</h1>
+            <p className="recommendation-copy">
+              Setiap kelas akan membuka halaman detail berisi status gratis atau berbayar sebelum
+              kamu lanjut ke belajar.
+            </p>
           </div>
 
           <div className="course-card-grid">
             {displayedCourses.map((course) => (
               <article className="recommendation-card" key={course.id}>
-                <span className="course-tag">{course.languageName}</span>
+                <div className="recommendation-card-top">
+                  <span className="course-tag">{course.languageName}</span>
+                  <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                    {course.priceLabel}
+                  </span>
+                </div>
                 <h2>{course.title}</h2>
-                <p>{course.level}</p>
+                <p>{course.description}</p>
                 <div className="course-meta">
                   <span>⭐ {course.rating}</span>
-                  <span>{course.modules} Modul</span>
+                  <span>{course.modules} modul</span>
+                  <span>{course.duration}</span>
                 </div>
-                <button className="btn btn-primary" type="button">
-                  Mulai Belajar
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => onOpenCourse?.(course.id)}
+                >
+                  Lihat Detail
                 </button>
               </article>
             ))}
