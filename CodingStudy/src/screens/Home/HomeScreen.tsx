@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-<<<<<<< HEAD:CodingStudy/src/screens/Home/HomeScreen.tsx
 import { courseCatalog } from '../../data/courses'
-=======
-import { courseCatalog, languageLabels } from '../../data/courseCatalog'
->>>>>>> e8d934d532231cc6952d0bbd355545c29aa09915:coding-study-fe/CodingStudy/src/screens/Home/HomeScreen.tsx
 
 type Language = 'id' | 'en'
+
+type Course = (typeof courseCatalog)[number]
 
 type HomeScreenProps = {
   language?: Language
@@ -20,22 +18,6 @@ type HomeScreenProps = {
   onProgrammerPositionChange?: (position: string) => void
   onOpenCourse?: (course: Course) => void
   onLogout?: () => void
-<<<<<<< HEAD:CodingStudy/src/screens/Home/HomeScreen.tsx
-}
-
-type Course = {
-  id: number
-  languageId: string
-  languageName: string
-  title: string
-  rating: number
-  modules: number
-  level: string
-  duration: string
-  mentor: string
-  description: string
-  outcomes: string[]
-  syllabus: string[]
 }
 
 const languageLabels: Record<string, string> = {
@@ -47,9 +29,6 @@ const languageLabels: Record<string, string> = {
   sql: 'SQL',
   dart: 'Dart',
   kotlin: 'Kotlin',
-=======
-  onOpenCourse?: (courseId: string) => void
->>>>>>> e8d934d532231cc6952d0bbd355545c29aa09915:coding-study-fe/CodingStudy/src/screens/Home/HomeScreen.tsx
 }
 
 const languageOptions = Object.entries(languageLabels).map(([id, name]) => ({ id, name }))
@@ -63,11 +42,6 @@ const positionLanguageMap: Record<string, string[]> = {
   data: ['python', 'sql', 'java'],
 }
 
-<<<<<<< HEAD:CodingStudy/src/screens/Home/HomeScreen.tsx
-const recommendedCourses: Course[] = courseCatalog
-
-=======
->>>>>>> e8d934d532231cc6952d0bbd355545c29aa09915:coding-study-fe/CodingStudy/src/screens/Home/HomeScreen.tsx
 function normalizeSelectedLanguages(selectedLanguages: string[], programmerPosition: string) {
   if (selectedLanguages.length > 0) {
     return selectedLanguages
@@ -83,7 +57,6 @@ function HomeScreen({
   onToggleLanguage,
   onOpenCourse,
   onLogout,
-  onOpenCourse,
 }: HomeScreenProps) {
   const learningLanguages = normalizeSelectedLanguages(
     selectedProgrammingLanguages,
@@ -112,8 +85,6 @@ function HomeScreen({
   const displayedCourses = visibleCourses.length > 0 ? visibleCourses : courseCatalog.slice(0, 3)
   const firstName = user.name.trim().split(' ')[0] || 'Learner'
   const avatarInitial = firstName.charAt(0).toUpperCase()
-  const totalFreeCourses = courseCatalog.filter((course) => course.access === 'free').length
-  const totalPaidCourses = courseCatalog.length - totalFreeCourses
 
   return (
     <main className="home-page">
@@ -140,44 +111,25 @@ function HomeScreen({
       </header>
 
       <section className="home-welcome" id="top">
-        <div className="home-welcome-copy">
+        <div>
           <p className="home-greeting">👋 Selamat datang, {firstName}!</p>
           <p className="home-profile-email">{user.email}</p>
-          <p className="home-headline">
-            Dashboard ini sudah siap dipakai dengan alur dummy yang lebih rapi, termasuk detail
-            kelas gratis dan berbayar.
-          </p>
-
           <div className="home-focus-row" aria-label="Fokus belajar saat ini">
-            <span>Fokus belajarmu:</span>
+            <span>Fokus belajarmu saat ini:</span>
             {learningLanguages.slice(0, 4).map((languageId) => (
               <strong key={languageId}>{languageLabels[languageId] ?? languageId}</strong>
             ))}
           </div>
         </div>
 
-        <div className="home-snapshot" aria-label="Ringkasan kelas">
-          <div>
-            <span>Total kelas</span>
-            <strong>{courseCatalog.length}</strong>
-          </div>
-          <div>
-            <span>Gratis</span>
-            <strong>{totalFreeCourses}</strong>
-          </div>
-          <div>
-            <span>Berbayar</span>
-            <strong>{totalPaidCourses}</strong>
-          </div>
-          <button className="btn btn-secondary" type="button" onClick={onLogout}>
-            Logout
-          </button>
-        </div>
+        <button className="btn btn-secondary" type="button" onClick={onLogout}>
+          Logout
+        </button>
       </section>
 
       <section className="home-content" id="classes">
         <div className="topic-filter" aria-label="Pilih topik kursus">
-          <span>Pilih topik</span>
+          <span>Pilih Topik:</span>
           <button
             className={activeTopic === 'all' ? 'is-active' : ''}
             type="button"
@@ -200,7 +152,7 @@ function HomeScreen({
             onClick={() => setIsInterestPanelOpen((current) => !current)}
             aria-expanded={isInterestPanelOpen}
           >
-            + Tambah minat
+            + Tambah Minat
           </button>
         </div>
 
@@ -208,7 +160,7 @@ function HomeScreen({
           <div className="interest-panel" aria-label="Tambah minat bahasa pemrograman">
             <div>
               <strong>Pilih bahasa tambahan</strong>
-              <p>Rekomendasi kelas akan langsung menyesuaikan minat barumu.</p>
+              <p>Rekomendasi kursus akan langsung ikut berubah.</p>
             </div>
             <div className="interest-option-grid">
               {languageOptions.map((item) => {
@@ -233,11 +185,11 @@ function HomeScreen({
 
         <section className="course-recommendation" id="library" aria-labelledby="recommendation-title">
           <div className="recommendation-heading">
-            <p className="eyebrow">🎯 Rekomendasi untukmu</p>
+            <p className="eyebrow">🎯 Rekomendasi kursus untukmu</p>
             <h1 id="recommendation-title">Pilih kelas lalu lihat detailnya dulu</h1>
             <p className="recommendation-copy">
-              Setiap kelas akan membuka halaman detail berisi status gratis atau berbayar sebelum
-              kamu lanjut ke belajar.
+              Setiap kelas akan membuka halaman detail berisi ringkasan materi sebelum kamu lanjut
+              belajar.
             </p>
           </div>
 
@@ -246,9 +198,7 @@ function HomeScreen({
               <article className="recommendation-card" key={course.id}>
                 <div className="recommendation-card-top">
                   <span className="course-tag">{course.languageName}</span>
-                  <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
-                    {course.priceLabel}
-                  </span>
+                  <span className="course-pill">Detail kursus</span>
                 </div>
                 <h2>{course.title}</h2>
                 <p>{course.description}</p>
@@ -260,15 +210,9 @@ function HomeScreen({
                 <button
                   className="btn btn-primary"
                   type="button"
-<<<<<<< HEAD:CodingStudy/src/screens/Home/HomeScreen.tsx
                   onClick={() => onOpenCourse?.(course)}
                 >
                   Mulai Belajar
-=======
-                  onClick={() => onOpenCourse?.(course.id)}
-                >
-                  Lihat Detail
->>>>>>> e8d934d532231cc6952d0bbd355545c29aa09915:coding-study-fe/CodingStudy/src/screens/Home/HomeScreen.tsx
                 </button>
               </article>
             ))}
