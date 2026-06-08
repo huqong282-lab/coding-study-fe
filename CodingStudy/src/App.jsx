@@ -123,7 +123,7 @@ function App() {
         path="/courses/:courseId"
         element={
           isAuthenticated && hasCompletedLanguageSelection ? (
-            <CourseDetailScreen language={language} />
+            <CourseDetailScreen language={language} user={currentUser} onLogout={handleLogout} />
           ) : (
             <Navigate to={isAuthenticated ? '/language-selection' : '/'} replace />
           )

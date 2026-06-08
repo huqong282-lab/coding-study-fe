@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import Footer from '../../components/common/Footer'
+import Navbar from '../../components/common/Navbar'
 import { courseCatalog } from '../../data/courses'
+import type { Course } from '../../data/courses'
 
 type Language = 'id' | 'en'
-
-type Course = (typeof courseCatalog)[number]
 
 type HomeScreenProps = {
   language?: Language
@@ -84,31 +85,10 @@ function HomeScreen({
 
   const displayedCourses = visibleCourses.length > 0 ? visibleCourses : courseCatalog.slice(0, 3)
   const firstName = user.name.trim().split(' ')[0] || 'Learner'
-  const avatarInitial = firstName.charAt(0).toUpperCase()
 
   return (
     <main className="home-page">
-      <header className="home-navbar" aria-label="Main navigation">
-        <a className="home-logo" href="#top" aria-label="Coding Study home">
-          <span>CS</span>
-          Coding Study
-        </a>
-
-        <nav className="home-nav-links" aria-label="Learning navigation">
-          <a href="#classes">Kelas Saya</a>
-          <a href="#library">Library</a>
-        </nav>
-
-        <div className="home-nav-actions">
-          <label className="home-search">
-            <span>Cari kursus</span>
-            <input type="search" placeholder="React, Python, SQL..." />
-          </label>
-          <button className="home-avatar-button" type="button" aria-label={`Profil ${user.name}`}>
-            {avatarInitial}
-          </button>
-        </div>
-      </header>
+      <Navbar user={user} onLogout={onLogout} />
 
       <section className="home-welcome" id="top">
         <div>
@@ -121,10 +101,6 @@ function HomeScreen({
             ))}
           </div>
         </div>
-
-        <button className="btn btn-secondary" type="button" onClick={onLogout}>
-          Logout
-        </button>
       </section>
 
       <section className="home-content" id="classes">
@@ -219,6 +195,8 @@ function HomeScreen({
           </div>
         </section>
       </section>
+
+      <Footer />
     </main>
   )
 }

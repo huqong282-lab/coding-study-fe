@@ -1,13 +1,19 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import Footer from '../../components/common/Footer'
+import Navbar from '../../components/common/Navbar'
 import { courseCatalog } from '../../data/courses'
+import type { Course } from '../../data/courses'
 
 type Language = 'id' | 'en'
 
-type Course = (typeof courseCatalog)[number]
-
 type CourseDetailScreenProps = {
   language?: Language
+  user?: {
+    name: string
+    email: string
+  }
+  onLogout?: () => void
 }
 
 const copy = {
@@ -35,7 +41,7 @@ const copy = {
   },
 }
 
-function CourseDetailScreen({ language = 'id' }: CourseDetailScreenProps) {
+function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScreenProps) {
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
@@ -47,18 +53,21 @@ function CourseDetailScreen({ language = 'id' }: CourseDetailScreenProps) {
   if (!course) {
     return (
       <main className="course-detail-page">
+        <Navbar user={user} onLogout={onLogout} />
         <section className="course-detail-card">
           <p>{text.notFound}</p>
           <button className="btn btn-secondary" type="button" onClick={() => navigate('/home')}>
             {text.back}
           </button>
         </section>
+        <Footer />
       </main>
     )
   }
 
   return (
     <main className="course-detail-page">
+      <Navbar user={user} onLogout={onLogout} />
       <section className="course-detail-card">
         <div className="course-detail-header">
           <div>
@@ -109,6 +118,7 @@ function CourseDetailScreen({ language = 'id' }: CourseDetailScreenProps) {
           </section>
         </div>
       </section>
+      <Footer />
     </main>
   )
 }

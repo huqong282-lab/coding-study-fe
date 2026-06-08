@@ -1,4 +1,19 @@
-export const courseCatalog = [
+export type Course = {
+  id: number
+  languageId: string
+  languageName: string
+  title: string
+  rating: number
+  modules: number
+  level: string
+  duration: string
+  mentor: string
+  description: string
+  outcomes: string[]
+  syllabus: string[]
+}
+
+export const courseCatalog: Course[] = [
   {
     id: 1,
     languageId: 'javascript',
