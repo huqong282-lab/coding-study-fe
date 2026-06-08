@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { courseCatalog } from '../../data/courses'
 
 type Language = 'id' | 'en'
 
@@ -13,6 +14,7 @@ type HomeScreenProps = {
   onToggleLanguage?: (languageId: string) => void
   onLanguageChange?: (language: Language) => void
   onProgrammerPositionChange?: (position: string) => void
+  onOpenCourse?: (course: Course) => void
   onLogout?: () => void
 }
 
@@ -24,6 +26,11 @@ type Course = {
   rating: number
   modules: number
   level: string
+  duration: string
+  mentor: string
+  description: string
+  outcomes: string[]
+  syllabus: string[]
 }
 
 const languageLabels: Record<string, string> = {
@@ -48,89 +55,7 @@ const positionLanguageMap: Record<string, string[]> = {
   data: ['python', 'sql', 'java'],
 }
 
-const recommendedCourses: Course[] = [
-  {
-    id: 1,
-    languageId: 'javascript',
-    languageName: 'JavaScript',
-    title: 'JavaScript Dasar',
-    rating: 4.8,
-    modules: 12,
-    level: 'Pemula',
-  },
-  {
-    id: 2,
-    languageId: 'python',
-    languageName: 'Python',
-    title: 'Python Untuk Data',
-    rating: 4.9,
-    modules: 15,
-    level: 'Data',
-  },
-  {
-    id: 3,
-    languageId: 'javascript',
-    languageName: 'JavaScript',
-    title: 'Belajar Node.js',
-    rating: 4.7,
-    modules: 10,
-    level: 'Backend',
-  },
-  {
-    id: 4,
-    languageId: 'typescript',
-    languageName: 'TypeScript',
-    title: 'TypeScript Modern',
-    rating: 4.8,
-    modules: 11,
-    level: 'Frontend',
-  },
-  {
-    id: 5,
-    languageId: 'java',
-    languageName: 'Java',
-    title: 'Java OOP Praktis',
-    rating: 4.6,
-    modules: 13,
-    level: 'Backend',
-  },
-  {
-    id: 6,
-    languageId: 'go',
-    languageName: 'Go API Service',
-    title: 'Go API Service',
-    rating: 4.7,
-    modules: 9,
-    level: 'Cloud',
-  },
-  {
-    id: 7,
-    languageId: 'sql',
-    languageName: 'SQL',
-    title: 'SQL Query Dasar',
-    rating: 4.8,
-    modules: 8,
-    level: 'Database',
-  },
-  {
-    id: 8,
-    languageId: 'dart',
-    languageName: 'Dart',
-    title: 'Dart Untuk Flutter',
-    rating: 4.6,
-    modules: 10,
-    level: 'Mobile',
-  },
-  {
-    id: 9,
-    languageId: 'kotlin',
-    languageName: 'Kotlin',
-    title: 'Kotlin Android',
-    rating: 4.7,
-    modules: 12,
-    level: 'Mobile',
-  },
-]
+const recommendedCourses: Course[] = courseCatalog
 
 function normalizeSelectedLanguages(selectedLanguages: string[], programmerPosition: string) {
   if (selectedLanguages.length > 0) {
@@ -145,6 +70,7 @@ function HomeScreen({
   user = { name: 'Raka Pratama', email: 'raka@codingstudy.dev' },
   selectedProgrammingLanguages = [],
   onToggleLanguage,
+  onOpenCourse,
   onLogout,
 }: HomeScreenProps) {
   const learningLanguages = normalizeSelectedLanguages(
@@ -288,7 +214,11 @@ function HomeScreen({
                   <span>⭐ {course.rating}</span>
                   <span>{course.modules} Modul</span>
                 </div>
-                <button className="btn btn-primary" type="button">
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => onOpenCourse?.(course)}
+                >
                   Mulai Belajar
                 </button>
               </article>
