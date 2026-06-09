@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
+import BrandPartners from '../../components/home/BrandPartners'
+import CourseShowcase from '../../components/home/CourseShowcase'
+import FaqSection from '../../components/home/FaqSection'
+import LanguageTracks from '../../components/home/LanguageTracks'
+import Testimonials from '../../components/home/Testimonials'
 import { courseCatalog } from '../../data/courses'
 import type { Course } from '../../data/courses'
 
@@ -159,7 +164,7 @@ function HomeScreen({
           </div>
         )}
 
-        <section className="course-recommendation" id="library" aria-labelledby="recommendation-title">
+        <section className="course-recommendation" id="legacy-library" aria-labelledby="recommendation-title">
           <div className="recommendation-heading">
             <p className="eyebrow">🎯 Rekomendasi kursus untukmu</p>
             <h1 id="recommendation-title">Pilih kelas lalu lihat detailnya dulu</h1>
@@ -194,6 +199,12 @@ function HomeScreen({
             ))}
           </div>
         </section>
+
+        <CourseShowcase courses={displayedCourses} onOpenCourse={onOpenCourse} />
+        <LanguageTracks />
+        <BrandPartners />
+        <Testimonials />
+        <FaqSection />
       </section>
 
       <Footer />
