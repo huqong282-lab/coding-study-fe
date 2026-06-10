@@ -4,6 +4,11 @@ import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
 import { courseCatalog } from '../../data/courses'
 import type { Course } from '../../data/courses'
+import CourseDetailHero from './components/CourseDetailHero'
+import CourseDetailListPanel from './components/CourseDetailListPanel'
+import CourseDetailStats from './components/CourseDetailStats'
+import CourseLessonsPanel from './components/CourseLessonsPanel'
+import CourseTrailerPanel from './components/CourseTrailerPanel'
 
 type Language = 'id' | 'en'
 
@@ -19,24 +24,44 @@ type CourseDetailScreenProps = {
 const copy = {
   id: {
     back: 'Kembali ke beranda',
-    overview: 'Ringkasan kursus',
+  overview: 'Ringkasan kursus',
+    released: 'Rilis',
+    updated: 'Terakhir diperbarui',
+    members: 'Member',
+    lessonType: 'Tipe lesson',
+    certificate: 'Sertifikat',
+    consultation: 'Konsultasi',
     outcomes: 'Hasil belajar',
     syllabus: 'Silabus',
     mentor: 'Mentor',
     modules: 'Modul',
     duration: 'Durasi',
     rating: 'Rating',
+    courseType: 'Video Only',
+    joinCourse: 'Gabung Kelas',
+    moreLessons: 'lebih banyak lesson',
+    watchOnYoutube: 'Tonton di YouTube',
     notFound: 'Kursus tidak ditemukan.',
   },
   en: {
     back: 'Back to home',
     overview: 'Course overview',
+    released: 'Released',
+    updated: 'Last updated',
+    members: 'Members',
+    lessonType: 'Lesson type',
+    certificate: 'Certificate',
+    consultation: 'Consultation',
     outcomes: 'Learning outcomes',
     syllabus: 'Syllabus',
     mentor: 'Mentor',
     modules: 'Modules',
     duration: 'Duration',
     rating: 'Rating',
+    courseType: 'Video Only',
+    joinCourse: 'Join Class',
+    moreLessons: 'more lessons',
+    watchOnYoutube: 'Watch on YouTube',
     notFound: 'Course not found.',
   },
 }
@@ -48,6 +73,14 @@ function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScr
   const course = useMemo<Course | undefined>(
     () => courseCatalog.find((item) => String(item.id) === params.courseId),
     [params.courseId],
+  )
+  const lessonPreview = useMemo(
+    () =>
+      course?.syllabus.slice(0, 4).map((lesson, index) => ({
+        title: lesson,
+        duration: `${Math.max(3, 5 - Math.min(index, 2))} ${language === 'id' ? 'menit' : 'mins'}`,
+      })) ?? [],
+    [course, language],
   )
 
   if (!course) {
@@ -65,57 +98,55 @@ function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScr
     )
   }
 
+  const remainingLessons = Math.max(course.modules - lessonPreview.length, 0)
+  const totalMinutes = course.modules * 3
+  const heroSnapshots = [
+    { label: text.released, value: 'June 2022' },
+    { label: text.updated, value: 'June 2026' },
+  ]
+  const stats = [
+    { label: text.members, value: `${(course.modules * 1650).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} enrolled` },
+    { label: text.lessonType, value: text.courseType },
+    { label: language === 'id' ? 'Tingkatan' : 'Level', value: course.level },
+    { label: text.certificate, value: '✓' },
+    { label: text.consultation, value: '—' },
+  ]
+
   return (
     <main className="course-detail-page">
       <Navbar user={user} onLogout={onLogout} />
-      <section className="course-detail-card">
-        <div className="course-detail-header">
-          <div>
-            <p className="eyebrow">{text.overview}</p>
-            <h1>{course.title}</h1>
-            <p className="course-detail-description">{course.description}</p>
-          </div>
-
-          <button className="btn btn-secondary" type="button" onClick={() => navigate('/home')}>
+      <section className="course-detail-shell">
+        <div className="course-detail-page-actions">
+          <button className="btn btn-secondary course-detail-back-btn course-detail-back-btn-floating" type="button" onClick={() => navigate('/home')}>
             {text.back}
           </button>
         </div>
 
-        <div className="course-detail-meta">
-          <span>{course.languageName}</span>
-          <span>{course.level}</span>
-          <span>
-            {text.rating}: {course.rating}
-          </span>
-          <span>
-            {text.modules}: {course.modules}
-          </span>
-          <span>
-            {text.duration}: {course.duration}
-          </span>
-          <span>
-            {text.mentor}: {course.mentor}
-          </span>
+        <CourseDetailHero
+          eyebrow={text.overview}
+          title={course.title}
+          description={course.description}
+          snapshots={heroSnapshots}
+          badges={[course.languageName, course.level, `${text.modules}: ${course.modules}`]}
+        />
+
+        <CourseDetailStats items={stats} />
+
+        <div className="course-detail-main-grid">
+          <CourseTrailerPanel title={`Trailer Kelas ${course.title} [Gratis]`} mentor={course.mentor} accentLabel={text.watchOnYoutube} />
+
+          <CourseLessonsPanel
+            heading={`${course.modules} lessons (${totalMinutes} mins)`}
+            lessons={lessonPreview}
+            moreLessonsLabel={remainingLessons > 0 ? `${remainingLessons} ${text.moreLessons}` : ''}
+            ctaLabel={text.joinCourse}
+            onCtaClick={() => navigate('/home')}
+          />
         </div>
 
-        <div className="course-detail-grid">
-          <section className="course-detail-panel">
-            <h2>{text.outcomes}</h2>
-            <ul>
-              {course.outcomes.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="course-detail-panel">
-            <h2>{text.syllabus}</h2>
-            <ol>
-              {course.syllabus.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ol>
-          </section>
+        <div className="course-detail-content-grid">
+          <CourseDetailListPanel eyebrow={text.outcomes} title={text.outcomes} items={course.outcomes} />
+          <CourseDetailListPanel eyebrow={text.syllabus} title={text.syllabus} items={course.syllabus} variant="numbered" />
         </div>
       </section>
       <Footer />
