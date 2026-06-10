@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 import type { Course } from '../../data/courses'
 
 type CourseShowcaseProps = {
@@ -52,7 +53,88 @@ function CourseThumbnail({ index, title }: { index: number; title: string }) {
 }
 
 function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
-  const carouselCourses = [...courses, ...courses]
+  const railRef = useRef<HTMLDivElement>(null)
+  const dragStateRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startScrollLeft: 0,
+    hasDragged: false,
+  })
+
+  const carouselCourses = useMemo(() => [...courses, ...courses, ...courses], [courses])
+
+  useEffect(() => {
+    const rail = railRef.current
+
+    if (!rail) {
+      return
+    }
+
+    const setWidth = rail.scrollWidth / 3
+    rail.scrollLeft = setWidth
+  }, [courses])
+
+  function normalizeScrollPosition() {
+    const rail = railRef.current
+
+    if (!rail) {
+      return
+    }
+
+    const setWidth = rail.scrollWidth / 3
+
+    if (rail.scrollLeft <= setWidth * 0.5) {
+      rail.scrollLeft += setWidth
+    } else if (rail.scrollLeft >= setWidth * 1.5) {
+      rail.scrollLeft -= setWidth
+    }
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const rail = railRef.current
+
+    if (!rail) {
+      return
+    }
+
+    dragStateRef.current.isDragging = true
+    dragStateRef.current.hasDragged = false
+    dragStateRef.current.startX = event.clientX
+    dragStateRef.current.startScrollLeft = rail.scrollLeft
+
+    rail.setPointerCapture(event.pointerId)
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const rail = railRef.current
+
+    if (!rail || !dragStateRef.current.isDragging) {
+      return
+    }
+
+    const deltaX = event.clientX - dragStateRef.current.startX
+
+    if (Math.abs(deltaX) > 6) {
+      dragStateRef.current.hasDragged = true
+    }
+
+    rail.scrollLeft = dragStateRef.current.startScrollLeft - deltaX
+    normalizeScrollPosition()
+  }
+
+  function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const rail = railRef.current
+
+    if (rail?.hasPointerCapture(event.pointerId)) {
+      rail.releasePointerCapture(event.pointerId)
+    }
+
+    dragStateRef.current.isDragging = false
+
+    window.setTimeout(() => {
+      dragStateRef.current.hasDragged = false
+    }, 0)
+  }
 
   return (
     <section className="bwa-section bwa-course-section" id="library" aria-labelledby="bwa-course-title">
@@ -61,13 +143,31 @@ function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
         <h1 id="bwa-course-title">Kelas Online Sesuai Dengan Karirmu</h1>
       </div>
 
-      <div className="bwa-course-rail" aria-label="Daftar kelas pilihan">
+      <div
+        className="bwa-course-rail"
+        ref={railRef}
+        aria-label="Daftar kelas pilihan"
+        role="list"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
+      >
         {carouselCourses.map((course, index) => (
-          <article className="bwa-course-card" key={`${course.id}-${index}`}>
+          <article className="bwa-course-card" key={`${course.id}-${index}`} role="listitem">
             <button
               className="bwa-course-media"
               type="button"
-              onClick={() => onOpenCourse?.(course)}
+              onClick={(event) => {
+                if (dragStateRef.current.hasDragged) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  return
+                }
+
+                onOpenCourse?.(course)
+              }}
               aria-label={`Lihat video dan detail ${course.title}`}
             >
               <CourseThumbnail index={index} title={course.title} />
