@@ -12,8 +12,10 @@ type LoginScreenProps = {
   onModeChange: (mode: AuthMode) => void
   onLanguageChange: (language: Language) => void
   onProgrammerPositionChange: (position: string) => void
-  onLogin: (credentials: { email: string }) => void
-  onRegister: (user: { name: string; email: string }) => void
+  onLogin: (credentials: { email: string; password: string }) => Promise<void> | void
+  onRegister: (user: { name: string; email: string; password: string }) => Promise<void> | void
+  authError?: string
+  isAuthLoading?: boolean
 }
 
 function LoginScreen({
@@ -25,6 +27,8 @@ function LoginScreen({
   onProgrammerPositionChange,
   onLogin,
   onRegister,
+  authError = '',
+  isAuthLoading = false,
 }: LoginScreenProps) {
   const isLogin = mode === 'login'
   const text = appCopy[language]
@@ -116,12 +120,16 @@ function LoginScreen({
             language={language}
             onSwitchToRegister={() => onModeChange('register')}
             onLogin={onLogin}
+            serverError={authError}
+            isLoading={isAuthLoading}
           />
         ) : (
           <Register
             language={language}
             onSwitchToLogin={() => onModeChange('login')}
             onRegister={onRegister}
+            serverError={authError}
+            isLoading={isAuthLoading}
           />
         )}
       </section>

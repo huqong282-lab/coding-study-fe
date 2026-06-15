@@ -3,7 +3,9 @@ import { useMemo, useState } from 'react'
 type RegisterProps = {
   language?: 'id' | 'en'
   onSwitchToLogin: () => void
-  onRegister?: (user: { name: string; email: string }) => void
+  onRegister?: (user: { name: string; email: string; password: string }) => Promise<void> | void
+  serverError?: string
+  isLoading?: boolean
 }
 
 type RegisterForm = {
@@ -69,7 +71,13 @@ const registerCopy = {
   },
 }
 
-function Register({ language = 'id', onSwitchToLogin, onRegister }: RegisterProps) {
+function Register({
+  language = 'id',
+  onSwitchToLogin,
+  onRegister,
+  serverError = '',
+  isLoading = false,
+}: RegisterProps) {
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -120,14 +128,15 @@ function Register({ language = 'id', onSwitchToLogin, onRegister }: RegisterProp
     setSubmitted(false)
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
 
     if (isValid) {
-      onRegister?.({
+      await onRegister?.({
         name: form.name.trim(),
         email: form.email.trim(),
+        password: form.password,
       })
     }
   }
@@ -207,14 +216,14 @@ function Register({ language = 'id', onSwitchToLogin, onRegister }: RegisterProp
         <span>{copy.updates}</span>
       </label>
 
-      {submitted && (
-        <div className={isValid ? 'form-message success' : 'form-message error'}>
-          {isValid ? copy.success : copy.error}
+      {(submitted || serverError) && (
+        <div className={isValid && !serverError ? 'form-message success' : 'form-message error'}>
+          {serverError || (isValid ? copy.success : copy.error)}
         </div>
       )}
 
-      <button className="btn btn-primary auth-submit select-none" type="submit">
-        {copy.submit}
+      <button className="btn btn-primary auth-submit select-none" type="submit" disabled={isLoading}>
+        {isLoading ? 'Loading...' : copy.submit}
       </button>
 
       <p className="auth-switch-copy">

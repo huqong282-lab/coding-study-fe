@@ -4,12 +4,8 @@ import CourseDetailScreen from './screens/CourseDetail/CourseDetailScreen'
 import HomeScreen from './screens/Home/HomeScreen'
 import LanguageSelectionScreen from './screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from './screens/Login/LoginScreen'
+import * as authServices from './services/authServices'
 import './App.css'
-
-const defaultUser = {
-  name: 'Raka Pratama',
-  email: 'raka@codingstudy.dev',
-}
 
 function App() {
   const navigate = useNavigate()
@@ -17,10 +13,12 @@ function App() {
   const [language, setLanguage] = useState('id')
   const [programmerPosition, setProgrammerPosition] = useState('frontend')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [, setAuthToken] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [isAuthLoading, setIsAuthLoading] = useState(false)
   const [hasCompletedLanguageSelection, setHasCompletedLanguageSelection] = useState(false)
   const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState([])
-  const [registeredUser, setRegisteredUser] = useState(defaultUser)
-  const [currentUser, setCurrentUser] = useState(defaultUser)
+  const [currentUser, setCurrentUser] = useState(null)
 
   function toggleProgrammingLanguage(languageId) {
     setSelectedProgrammingLanguages((currentLanguages) =>
@@ -32,26 +30,44 @@ function App() {
 
   function handleLogout() {
     setIsAuthenticated(false)
+    setAuthToken('')
+    setCurrentUser(null)
     setHasCompletedLanguageSelection(false)
     setSelectedProgrammingLanguages([])
     setMode('login')
     navigate('/', { replace: true })
   }
 
-  function handleRegister(user) {
-    setRegisteredUser(user)
-    setMode('login')
+  async function handleRegister(user) {
+    setAuthError('')
+    setIsAuthLoading(true)
+
+    try {
+      await authServices.register(user)
+      setMode('login')
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Register gagal')
+    } finally {
+      setIsAuthLoading(false)
+    }
   }
 
-  function handleLogin(credentials) {
-    const matchedUser =
-      credentials.email.toLowerCase() === registeredUser.email.toLowerCase()
-        ? registeredUser
-        : { ...defaultUser, email: credentials.email }
+  async function handleLogin(credentials) {
+    setAuthError('')
+    setIsAuthLoading(true)
 
-    setCurrentUser(matchedUser)
-    setIsAuthenticated(true)
-    navigate('/language-selection', { replace: true })
+    try {
+      const result = await authServices.login(credentials)
+
+      setCurrentUser(result.user)
+      setAuthToken(result.accessToken)
+      setIsAuthenticated(true)
+      navigate('/language-selection', { replace: true })
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Login gagal')
+    } finally {
+      setIsAuthLoading(false)
+    }
   }
 
   function handleContinueLanguageSelection() {
@@ -80,6 +96,8 @@ function App() {
               onProgrammerPositionChange={setProgrammerPosition}
               onLogin={handleLogin}
               onRegister={handleRegister}
+              authError={authError}
+              isAuthLoading={isAuthLoading}
             />
           )
         }
