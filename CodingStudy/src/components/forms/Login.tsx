@@ -3,7 +3,9 @@ import { useMemo, useState } from 'react'
 type LoginProps = {
   language?: 'id' | 'en'
   onSwitchToRegister: () => void
-  onLogin?: (credentials: { email: string }) => void
+  onLogin?: (credentials: { email: string; password: string }) => Promise<void> | void
+  serverError?: string
+  isLoading?: boolean
 }
 
 type LoginForm = {
@@ -13,8 +15,8 @@ type LoginForm = {
 }
 
 const initialForm: LoginForm = {
-  email: 'raka@codingstudy.dev',
-  password: 'Belajar123!',
+  email: '',
+  password: '',
   remember: true,
 }
 
@@ -28,7 +30,7 @@ const loginCopy = {
     show: 'Show',
     remember: 'Ingat saya',
     forgotPassword: 'Lupa password?',
-    success: 'Login berhasil disimulasikan.',
+    success: 'Login berhasil.',
     error: 'Periksa kembali email dan password.',
     submit: 'Masuk',
     switchCopy: 'Belum punya akun?',
@@ -43,7 +45,7 @@ const loginCopy = {
     show: 'Show',
     remember: 'Remember me',
     forgotPassword: 'Forgot password?',
-    success: 'Login simulation succeeded.',
+    success: 'Login succeeded.',
     error: 'Check your email and password again.',
     submit: 'Sign in',
     switchCopy: 'Need an account?',
@@ -51,7 +53,13 @@ const loginCopy = {
   },
 }
 
-function Login({ language = 'id', onSwitchToRegister, onLogin }: LoginProps) {
+function Login({
+  language = 'id',
+  onSwitchToRegister,
+  onLogin,
+  serverError = '',
+  isLoading = false,
+}: LoginProps) {
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -83,12 +91,15 @@ function Login({ language = 'id', onSwitchToRegister, onLogin }: LoginProps) {
     setSubmitted(false)
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
 
     if (isValid) {
-      onLogin?.({ email: form.email.trim() })
+      await onLogin?.({
+        email: form.email.trim(),
+        password: form.password,
+      })
     }
   }
 
@@ -142,14 +153,14 @@ function Login({ language = 'id', onSwitchToRegister, onLogin }: LoginProps) {
         </button>
       </div>
 
-      {submitted && (
-        <div className={isValid ? 'form-message success' : 'form-message error'}>
-          {isValid ? copy.success : copy.error}
+      {(submitted || serverError) && (
+        <div className={isValid && !serverError ? 'form-message success' : 'form-message error'}>
+          {serverError || (isValid ? copy.success : copy.error)}
         </div>
       )}
 
-      <button className="btn btn-primary auth-submit select-none" type="submit">
-        {copy.submit}
+      <button className="btn btn-primary auth-submit select-none" type="submit" disabled={isLoading}>
+        {isLoading ? 'Loading...' : copy.submit}
       </button>
 
       <p className="auth-switch-copy">
