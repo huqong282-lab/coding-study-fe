@@ -1,3 +1,5 @@
+import type { Language } from '../../types/user'
+
 type LanguageOption = {
   id: string
   name: string
@@ -6,7 +8,7 @@ type LanguageOption = {
 }
 
 type LanguageSelectionScreenProps = {
-  language?: 'id' | 'en'
+  language?: Language
   selectedLanguages: string[]
   onToggleLanguage: (languageId: string) => void
   onContinue: () => void

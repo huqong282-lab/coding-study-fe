@@ -1,17 +1,4 @@
-export type Course = {
-  id: number
-  languageId: string
-  languageName: string
-  title: string
-  rating: number
-  modules: number
-  level: string
-  duration: string
-  mentor: string
-  description: string
-  outcomes: string[]
-  syllabus: string[]
-}
+import type { Course } from '../types/product'
 
 export const courseCatalog: Course[] = [
   {
@@ -23,6 +10,8 @@ export const courseCatalog: Course[] = [
     modules: 12,
     level: 'Pemula',
     duration: '6 minggu',
+    access: 'free',
+    priceLabel: 'Gratis',
     mentor: 'Dina Laras',
     description: 'Bangun fondasi JavaScript dari variabel sampai DOM dengan latihan bertahap.',
     outcomes: [
@@ -45,6 +34,8 @@ export const courseCatalog: Course[] = [
     modules: 15,
     level: 'Data',
     duration: '7 minggu',
+    access: 'paid',
+    priceLabel: 'Rp149.000',
     mentor: 'Rizky Ananda',
     description: 'Pelajari Python untuk olah data, otomasi, dan workflow analitik yang praktis.',
     outcomes: ['Menulis script data sederhana', 'Mengolah file dan dataset', 'Menyusun pipeline analitik ringan'],
@@ -63,6 +54,8 @@ export const courseCatalog: Course[] = [
     modules: 10,
     level: 'Backend',
     duration: '5 minggu',
+    access: 'free',
+    priceLabel: 'Gratis',
     mentor: 'Bagas Wicaksono',
     description: 'Masuk ke backend JavaScript dengan Node.js, Express, dan pola service layer.',
     outcomes: ['Membuat REST API sederhana', 'Memahami request-response', 'Menyusun struktur backend yang rapi'],
@@ -81,6 +74,8 @@ export const courseCatalog: Course[] = [
     modules: 11,
     level: 'Frontend',
     duration: '6 minggu',
+    access: 'paid',
+    priceLabel: 'Rp129.000',
     mentor: 'Naya Putri',
     description: 'Tingkatkan kualitas code React dengan type safety, generic, dan pattern modern.',
     outcomes: ['Menulis komponen bertipe aman', 'Memahami interface dan generics', 'Mengurangi bug dari data tak terduga'],
@@ -99,6 +94,8 @@ export const courseCatalog: Course[] = [
     modules: 13,
     level: 'Backend',
     duration: '7 minggu',
+    access: 'paid',
+    priceLabel: 'Rp169.000',
     mentor: 'Dimas Prakoso',
     description: 'Pahami object-oriented programming Java untuk backend dan pengembangan enterprise.',
     outcomes: ['Menguasai class dan object', 'Menyusun struktur OOP', 'Menulis flow aplikasi backend dasar'],
@@ -117,6 +114,8 @@ export const courseCatalog: Course[] = [
     modules: 9,
     level: 'Cloud',
     duration: '5 minggu',
+    access: 'free',
+    priceLabel: 'Gratis',
     mentor: 'Sinta Maharani',
     description: 'Bangun service ringan dan cepat dengan Go untuk API dan tooling cloud.',
     outcomes: ['Membuat service HTTP', 'Memahami concurrency dasar', 'Menyiapkan proyek microservice awal'],
@@ -131,6 +130,8 @@ export const courseCatalog: Course[] = [
     modules: 8,
     level: 'Database',
     duration: '4 minggu',
+    access: 'free',
+    priceLabel: 'Gratis',
     mentor: 'Teguh Santoso',
     description: 'Latihan query SQL dari select sederhana sampai join dan agregasi.',
     outcomes: ['Menulis query yang efisien', 'Memahami relasi tabel', 'Siap bekerja dengan database aplikasi'],
@@ -145,6 +146,8 @@ export const courseCatalog: Course[] = [
     modules: 10,
     level: 'Mobile',
     duration: '6 minggu',
+    access: 'paid',
+    priceLabel: 'Rp119.000',
     mentor: 'Citra Wulandari',
     description: 'Mulai dari Dart dasar sampai pola build UI untuk aplikasi mobile Flutter.',
     outcomes: ['Mengenal syntax Dart', 'Membuat stateful widget', 'Menyusun aplikasi mobile sederhana'],
@@ -159,6 +162,8 @@ export const courseCatalog: Course[] = [
     modules: 12,
     level: 'Mobile',
     duration: '6 minggu',
+    access: 'paid',
+    priceLabel: 'Rp139.000',
     mentor: 'Ardiansyah Hadi',
     description: 'Belajar Kotlin untuk membangun aplikasi Android modern dengan fondasi yang kuat.',
     outcomes: ['Memahami syntax Kotlin', 'Membuat UI Android dasar', 'Siap masuk ke Jetpack Compose'],

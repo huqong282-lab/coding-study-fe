@@ -1,17 +1,15 @@
 import Login from '../../components/forms/Login'
 import Register from '../../components/forms/Register'
 import { appCopy, languageOptions, programmerPositionOptions } from '../../data/appData'
-
-type AuthMode = 'login' | 'register'
-type Language = 'id' | 'en'
+import type { AuthMode, Language, ProgrammerPosition } from '../../types/user'
 
 type LoginScreenProps = {
   mode: AuthMode
   language: Language
-  programmerPosition: string
+  programmerPosition: ProgrammerPosition
   onModeChange: (mode: AuthMode) => void
   onLanguageChange: (language: Language) => void
-  onProgrammerPositionChange: (position: string) => void
+  onProgrammerPositionChange: (position: ProgrammerPosition) => void
   onLogin: (credentials: { email: string; password: string }) => Promise<void> | void
   onRegister: (user: { name: string; email: string; password: string }) => Promise<void> | void
   authError?: string

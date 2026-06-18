@@ -1,25 +1,10 @@
 import { apiFetch } from './api'
+import type { AppUser, AuthCredentials, AuthSession, RegisterCredentials } from '../types/user'
 
-export type AuthUser = {
-  id: number
-  name: string
-  email: string
-  role?: string
-}
-
-export type LoginPayload = {
-  email: string
-  password: string
-}
-
-export type RegisterPayload = LoginPayload & {
-  name: string
-}
-
-export type LoginResult = {
-  user: AuthUser
-  accessToken: string
-}
+export type AuthUser = AppUser
+export type LoginPayload = AuthCredentials
+export type RegisterPayload = RegisterCredentials
+export type LoginResult = AuthSession
 
 export async function login(payload: LoginPayload) {
   const response = await apiFetch<LoginResult>('/auth/login', {
