@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import type { AppUser } from '../../types/user'
 
 type NavbarProps = {
-  user?: {
-    name: string
-    email: string
-  }
+  user?: AppUser | null
   onLogout?: () => void
 }
 
-function Navbar({ user = { name: 'Raka Pratama', email: 'raka@codingstudy.dev' }, onLogout }: NavbarProps) {
+function Navbar({ user, onLogout }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
-  const firstName = user.name.trim().split(' ')[0] || 'Learner'
+  const firstName = user?.name.trim().split(' ')[0] || 'Learner'
   const avatarInitial = firstName.charAt(0).toUpperCase()
 
   useEffect(() => {
@@ -64,33 +62,44 @@ function Navbar({ user = { name: 'Raka Pratama', email: 'raka@codingstudy.dev' }
           <input type="search" placeholder="React, Python, SQL..." />
         </label>
 
-        <div className="profile-menu" ref={profileMenuRef}>
-          <button
-            className="home-avatar-button"
-            type="button"
-            aria-label={`Profil ${user.name}`}
-            aria-haspopup="menu"
-            aria-expanded={isProfileOpen}
-            onClick={() => setIsProfileOpen((current) => !current)}
-          >
-            {avatarInitial}
-          </button>
+        {user ? (
+          <div className="profile-menu" ref={profileMenuRef}>
+            <button
+              className="home-avatar-button"
+              type="button"
+              aria-label={`Profil ${user.name}`}
+              aria-haspopup="menu"
+              aria-expanded={isProfileOpen}
+              onClick={() => setIsProfileOpen((current) => !current)}
+            >
+              {avatarInitial}
+            </button>
 
-          {isProfileOpen && (
-            <div className="profile-popover" role="menu">
-              <div className="profile-popover-header">
-                <span className="profile-popover-avatar">{avatarInitial}</span>
-                <div>
-                  <strong>{user.name}</strong>
-                  <p>{user.email}</p>
+            {isProfileOpen && (
+              <div className="profile-popover" role="menu">
+                <div className="profile-popover-header">
+                  <span className="profile-popover-avatar">{avatarInitial}</span>
+                  <div>
+                    <strong>{user.name}</strong>
+                    <p>{user.email}</p>
+                  </div>
                 </div>
+                <button type="button" onClick={handleLogoutClick} role="menuitem">
+                  Logout
+                </button>
               </div>
-              <button type="button" onClick={handleLogoutClick} role="menuitem">
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="profile-guest-actions">
+            <Link className="btn btn-secondary profile-guest-button" to="/login">
+              Login
+            </Link>
+            <Link className="btn btn-primary profile-guest-button" to="/register">
+              Register
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   )

@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
 import BrandPartners from '../../components/home/BrandPartners'
@@ -6,103 +5,58 @@ import CourseShowcase from '../../components/home/CourseShowcase'
 import FaqSection from '../../components/home/FaqSection'
 import LanguageTracks from '../../components/home/LanguageTracks'
 import Testimonials from '../../components/home/Testimonials'
-import { courseCatalog } from '../../data/courses'
-import type { Course } from '../../data/courses'
-
-type Language = 'id' | 'en'
+import type { Course } from '../../types/product'
+import type { AppUser, ProgrammerPosition } from '../../types/user'
+import { useHomeCourses } from '../../hooks/useHomeCourses'
 
 type HomeScreenProps = {
-  language?: Language
-  programmerPosition?: string
-  user?: {
-    name: string
-    email: string
-  }
-  selectedProgrammingLanguages?: string[]
-  onToggleLanguage?: (languageId: string) => void
-  onLanguageChange?: (language: Language) => void
-  onProgrammerPositionChange?: (position: string) => void
-  onOpenCourse?: (course: Course) => void
-  onLogout?: () => void
-}
-
-const languageLabels: Record<string, string> = {
-  javascript: 'JavaScript',
-  python: 'Python',
-  typescript: 'TypeScript',
-  java: 'Java',
-  go: 'Go',
-  sql: 'SQL',
-  dart: 'Dart',
-  kotlin: 'Kotlin',
-}
-
-const languageOptions = Object.entries(languageLabels).map(([id, name]) => ({ id, name }))
-
-const positionLanguageMap: Record<string, string[]> = {
-  frontend: ['javascript', 'typescript'],
-  backend: ['javascript', 'python', 'go', 'sql'],
-  fullstack: ['javascript', 'typescript', 'python', 'sql'],
-  mobile: ['dart', 'kotlin', 'javascript'],
-  devops: ['python', 'go'],
-  data: ['python', 'sql', 'java'],
-}
-
-function normalizeSelectedLanguages(selectedLanguages: string[], programmerPosition: string) {
-  if (selectedLanguages.length > 0) {
-    return selectedLanguages
-  }
-
-  return positionLanguageMap[programmerPosition] ?? ['javascript', 'python']
+  programmerPosition: ProgrammerPosition
+  user?: AppUser | null
+  selectedProgrammingLanguages: string[]
+  onToggleLanguage: (languageId: string) => void
+  onOpenCourse: (course: Course) => void
+  onLogout: () => void
 }
 
 function HomeScreen({
-  programmerPosition = 'frontend',
-  user = { name: 'Raka Pratama', email: 'raka@codingstudy.dev' },
-  selectedProgrammingLanguages = [],
+  programmerPosition,
+  user,
+  selectedProgrammingLanguages,
   onToggleLanguage,
   onOpenCourse,
   onLogout,
 }: HomeScreenProps) {
-  const learningLanguages = normalizeSelectedLanguages(
-    selectedProgrammingLanguages,
-    programmerPosition,
-  )
-  const [activeTopic, setActiveTopic] = useState('all')
-  const [isInterestPanelOpen, setIsInterestPanelOpen] = useState(false)
+  const {
+    activeTopic,
+    displayedCourses,
+    languageOptions,
+    isInterestPanelOpen,
+    learningLanguages,
+    getLanguageLabel,
+    openAllTopic,
+    selectTopic,
+    showInterestPanel,
+  } = useHomeCourses(selectedProgrammingLanguages, programmerPosition)
+  const firstName = user?.name.trim().split(' ')[0] || 'Learner'
 
-  useEffect(() => {
-    if (activeTopic !== 'all' && !learningLanguages.includes(activeTopic)) {
-      setActiveTopic('all')
-    }
-  }, [activeTopic, learningLanguages])
-
-  const visibleCourses = useMemo(() => {
-    const selectedSet = new Set(learningLanguages)
-    const matchedCourses = courseCatalog.filter((course) => selectedSet.has(course.languageId))
-
-    if (activeTopic === 'all') {
-      return matchedCourses
-    }
-
-    return matchedCourses.filter((course) => course.languageId === activeTopic)
-  }, [activeTopic, learningLanguages])
-
-  const displayedCourses = visibleCourses.length > 0 ? visibleCourses : courseCatalog.slice(0, 3)
-  const firstName = user.name.trim().split(' ')[0] || 'Learner'
+  function handleOpenCourse(course: Course) {
+    onOpenCourse(course)
+  }
 
   return (
     <main className="home-page">
-      <Navbar user={user} onLogout={onLogout} />
+      <Navbar user={user ?? undefined} onLogout={onLogout} />
 
       <section className="home-welcome" id="top">
         <div>
           <p className="home-greeting">👋 Selamat datang, {firstName}!</p>
-          <p className="home-profile-email">{user.email}</p>
+          <p className="home-profile-email">
+            {user ? user.email : 'Masuk untuk menyimpan progres, kelas, dan pengaturanmu.'}
+          </p>
           <div className="home-focus-row" aria-label="Fokus belajar saat ini">
             <span>Fokus belajarmu saat ini:</span>
             {learningLanguages.slice(0, 4).map((languageId) => (
-              <strong key={languageId}>{languageLabels[languageId] ?? languageId}</strong>
+              <strong key={languageId}>{getLanguageLabel(languageId)}</strong>
             ))}
           </div>
         </div>
@@ -114,7 +68,7 @@ function HomeScreen({
           <button
             className={activeTopic === 'all' ? 'is-active' : ''}
             type="button"
-            onClick={() => setActiveTopic('all')}
+            onClick={openAllTopic}
           >
             Semua
           </button>
@@ -123,14 +77,14 @@ function HomeScreen({
               className={activeTopic === languageId ? 'is-active' : ''}
               key={languageId}
               type="button"
-              onClick={() => setActiveTopic(languageId)}
+              onClick={() => selectTopic(languageId)}
             >
-              {languageLabels[languageId] ?? languageId}
+              {getLanguageLabel(languageId)}
             </button>
           ))}
           <button
             type="button"
-            onClick={() => setIsInterestPanelOpen((current) => !current)}
+            onClick={showInterestPanel}
             aria-expanded={isInterestPanelOpen}
           >
             + Tambah Minat
@@ -152,7 +106,7 @@ function HomeScreen({
                     className={isSelected ? 'is-selected' : ''}
                     key={item.id}
                     type="button"
-                    onClick={() => onToggleLanguage?.(item.id)}
+                    onClick={() => onToggleLanguage(item.id)}
                     aria-pressed={isSelected}
                   >
                     <span>{item.name}</span>
@@ -176,7 +130,20 @@ function HomeScreen({
 
           <div className="course-card-grid">
             {displayedCourses.map((course) => (
-              <article className="recommendation-card" key={course.id}>
+              <article
+                className="recommendation-card"
+                key={course.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Buka detail kursus ${course.title}`}
+                onClick={() => handleOpenCourse(course)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleOpenCourse(course)
+                  }
+                }}
+              >
                 <div className="recommendation-card-top">
                   <span className="course-tag">{course.languageName}</span>
                   <span className="course-pill">Detail kursus</span>
@@ -187,11 +154,17 @@ function HomeScreen({
                   <span>⭐ {course.rating}</span>
                   <span>{course.modules} modul</span>
                   <span>{course.duration}</span>
+                  <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                    {course.priceLabel}
+                  </span>
                 </div>
                 <button
                   className="btn btn-primary"
                   type="button"
-                  onClick={() => onOpenCourse?.(course)}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleOpenCourse(course)
+                  }}
                 >
                   Mulai Belajar
                 </button>

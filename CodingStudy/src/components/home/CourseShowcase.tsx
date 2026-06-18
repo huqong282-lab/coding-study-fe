@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from 'react'
-import type { Course } from '../../data/courses'
+import { useEffect, useMemo, useRef, type WheelEvent as ReactWheelEvent } from 'react'
+import type { Course } from '../../types/product'
 
 type CourseShowcaseProps = {
   courses: Course[]
@@ -54,13 +54,6 @@ function CourseThumbnail({ index, title }: { index: number; title: string }) {
 
 function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
   const railRef = useRef<HTMLDivElement>(null)
-  const dragStateRef = useRef({
-    isDragging: false,
-    startX: 0,
-    startScrollLeft: 0,
-    hasDragged: false,
-  })
-
   const carouselCourses = useMemo(() => [...courses, ...courses, ...courses], [courses])
 
   useEffect(() => {
@@ -74,66 +67,23 @@ function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
     rail.scrollLeft = setWidth
   }, [courses])
 
-  function normalizeScrollPosition() {
+  function handleWheel(event: ReactWheelEvent<HTMLDivElement>) {
     const rail = railRef.current
 
     if (!rail) {
       return
     }
 
-    const setWidth = rail.scrollWidth / 3
-
-    if (rail.scrollLeft <= setWidth * 0.5) {
-      rail.scrollLeft += setWidth
-    } else if (rail.scrollLeft >= setWidth * 1.5) {
-      rail.scrollLeft -= setWidth
-    }
-  }
-
-  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    const rail = railRef.current
-
-    if (!rail) {
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
       return
     }
 
-    dragStateRef.current.isDragging = true
-    dragStateRef.current.hasDragged = false
-    dragStateRef.current.startX = event.clientX
-    dragStateRef.current.startScrollLeft = rail.scrollLeft
-
-    rail.setPointerCapture(event.pointerId)
+    event.preventDefault()
+    rail.scrollLeft += event.deltaY
   }
 
-  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    const rail = railRef.current
-
-    if (!rail || !dragStateRef.current.isDragging) {
-      return
-    }
-
-    const deltaX = event.clientX - dragStateRef.current.startX
-
-    if (Math.abs(deltaX) > 6) {
-      dragStateRef.current.hasDragged = true
-    }
-
-    rail.scrollLeft = dragStateRef.current.startScrollLeft - deltaX
-    normalizeScrollPosition()
-  }
-
-  function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    const rail = railRef.current
-
-    if (rail?.hasPointerCapture(event.pointerId)) {
-      rail.releasePointerCapture(event.pointerId)
-    }
-
-    dragStateRef.current.isDragging = false
-
-    window.setTimeout(() => {
-      dragStateRef.current.hasDragged = false
-    }, 0)
+  function openCourse(course: Course) {
+    onOpenCourse?.(course)
   }
 
   return (
@@ -148,48 +98,47 @@ function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
         ref={railRef}
         aria-label="Daftar kelas pilihan"
         role="list"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onPointerLeave={endDrag}
+        onWheel={handleWheel}
       >
         {carouselCourses.map((course, index) => (
-          <article className="bwa-course-card" key={`${course.id}-${index}`} role="listitem">
-            <button
-              className="bwa-course-media"
-              type="button"
-              onClick={(event) => {
-                if (dragStateRef.current.hasDragged) {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  return
-                }
-
-                onOpenCourse?.(course)
-              }}
-              aria-label={`Lihat video dan detail ${course.title}`}
-            >
+          <div
+            className="bwa-course-card"
+            key={`${course.id}-${index}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`Lihat detail ${course.title}`}
+            onClick={() => openCourse(course)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                openCourse(course)
+              }
+            }}
+          >
+            <div className="bwa-course-media" aria-hidden="true">
               <CourseThumbnail index={index} title={course.title} />
               <span className="bwa-video-overlay">
-                <span className="bwa-play-icon">▶</span>
+                <span className="bwa-play-icon">Play</span>
                 Mulai Video
               </span>
-            </button>
+            </div>
 
             <div className="bwa-course-body">
               <h2>{course.title}</h2>
               <p>{course.duration} belajar intensif</p>
               <div className="bwa-course-rating" aria-label={`Rating ${course.rating}`}>
-                <span>★★★★★</span>
+                <span>Stars</span>
                 <strong>({course.rating})</strong>
               </div>
               <div className="bwa-course-footer">
                 <span>{course.level}</span>
                 <span>{course.modules} materi</span>
+                <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                  {course.priceLabel}
+                </span>
               </div>
             </div>
-          </article>
+          </div>
         ))}
       </div>
     </section>

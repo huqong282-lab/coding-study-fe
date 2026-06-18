@@ -3,28 +3,24 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
 import { courseCatalog } from '../../data/courses'
-import type { Course } from '../../data/courses'
+import type { Course } from '../../types/product'
+import type { AppUser, Language } from '../../types/user'
 import CourseDetailHero from './components/CourseDetailHero'
 import CourseDetailListPanel from './components/CourseDetailListPanel'
 import CourseDetailStats from './components/CourseDetailStats'
 import CourseLessonsPanel from './components/CourseLessonsPanel'
 import CourseTrailerPanel from './components/CourseTrailerPanel'
 
-type Language = 'id' | 'en'
-
 type CourseDetailScreenProps = {
-  language?: Language
-  user?: {
-    name: string
-    email: string
-  }
-  onLogout?: () => void
+  language: Language
+  user?: AppUser | null
+  onLogout: () => void
 }
 
 const copy = {
   id: {
     back: 'Kembali ke beranda',
-  overview: 'Ringkasan kursus',
+    overview: 'Ringkasan kursus',
     released: 'Rilis',
     updated: 'Terakhir diperbarui',
     members: 'Member',
@@ -39,6 +35,7 @@ const copy = {
     rating: 'Rating',
     courseType: 'Video Only',
     joinCourse: 'Gabung Kelas',
+    payCourse: 'Bayar',
     moreLessons: 'lebih banyak lesson',
     watchOnYoutube: 'Tonton di YouTube',
     notFound: 'Kursus tidak ditemukan.',
@@ -60,20 +57,23 @@ const copy = {
     rating: 'Rating',
     courseType: 'Video Only',
     joinCourse: 'Join Class',
+    payCourse: 'Pay',
     moreLessons: 'more lessons',
     watchOnYoutube: 'Watch on YouTube',
     notFound: 'Course not found.',
   },
 }
 
-function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScreenProps) {
+function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProps) {
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
+
   const course = useMemo<Course | undefined>(
     () => courseCatalog.find((item) => String(item.id) === params.courseId),
     [params.courseId],
   )
+
   const lessonPreview = useMemo(
     () =>
       course?.syllabus.slice(0, 4).map((lesson, index) => ({
@@ -108,16 +108,23 @@ function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScr
     { label: text.members, value: `${(course.modules * 1650).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} enrolled` },
     { label: text.lessonType, value: text.courseType },
     { label: language === 'id' ? 'Tingkatan' : 'Level', value: course.level },
+    { label: language === 'id' ? 'Akses' : 'Access', value: course.priceLabel },
     { label: text.certificate, value: '✓' },
-    { label: text.consultation, value: '—' },
   ]
+
+  const ctaLabel = course.access === 'free' ? text.joinCourse : text.payCourse
+  const ctaTarget = course.access === 'free' ? `/courses/${course.id}/learn` : `/courses/${course.id}/checkout`
 
   return (
     <main className="course-detail-page">
       <Navbar user={user} onLogout={onLogout} />
       <section className="course-detail-shell">
         <div className="course-detail-page-actions">
-          <button className="btn btn-secondary course-detail-back-btn course-detail-back-btn-floating" type="button" onClick={() => navigate('/home')}>
+          <button
+            className="btn btn-secondary course-detail-back-btn course-detail-back-btn-floating"
+            type="button"
+            onClick={() => navigate('/home')}
+          >
             {text.back}
           </button>
         </div>
@@ -127,20 +134,24 @@ function CourseDetailScreen({ language = 'id', user, onLogout }: CourseDetailScr
           title={course.title}
           description={course.description}
           snapshots={heroSnapshots}
-          badges={[course.languageName, course.level, `${text.modules}: ${course.modules}`]}
+          badges={[course.languageName, course.level, `${text.modules}: ${course.modules}`, course.priceLabel]}
         />
 
         <CourseDetailStats items={stats} />
 
         <div className="course-detail-main-grid">
-          <CourseTrailerPanel title={`Trailer Kelas ${course.title} [Gratis]`} mentor={course.mentor} accentLabel={text.watchOnYoutube} />
+          <CourseTrailerPanel
+            title={`Trailer Kelas ${course.title} [Gratis]`}
+            mentor={course.mentor}
+            accentLabel={text.watchOnYoutube}
+          />
 
           <CourseLessonsPanel
             heading={`${course.modules} lessons (${totalMinutes} mins)`}
             lessons={lessonPreview}
             moreLessonsLabel={remainingLessons > 0 ? `${remainingLessons} ${text.moreLessons}` : ''}
-            ctaLabel={text.joinCourse}
-            onCtaClick={() => navigate('/home')}
+            ctaLabel={ctaLabel}
+            onCtaClick={() => navigate(ctaTarget)}
           />
         </div>
 
