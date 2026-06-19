@@ -84,7 +84,21 @@ function Navbar({ user, onLogout }: NavbarProps) {
                     <p>{user.email}</p>
                   </div>
                 </div>
-                <button type="button" onClick={handleLogoutClick} role="menuitem">
+                <nav className="profile-popover-nav" aria-label="Profile dashboard navigation">
+                  <Link to="/dashboard" role="menuitem" onClick={() => setIsProfileOpen(false)}>
+                    <span>□</span>
+                    Overview
+                  </Link>
+                  <Link
+                    to="/dashboard?tab=courses"
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <span>▱</span>
+                    My Courses
+                  </Link>
+                </nav>
+                <button className="profile-logout-button" type="button" onClick={handleLogoutClick} role="menuitem">
                   Logout
                 </button>
               </div>
