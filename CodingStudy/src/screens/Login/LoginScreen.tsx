@@ -2,6 +2,7 @@ import Login from '../../components/forms/Login'
 import Register from '../../components/forms/Register'
 import { appCopy, languageOptions, programmerPositionOptions } from '../../data/appData'
 import type { AuthMode, Language, ProgrammerPosition } from '../../types/user'
+import { useNavigate } from 'react-router-dom'
 
 type LoginScreenProps = {
   mode: AuthMode
@@ -30,6 +31,12 @@ function LoginScreen({
 }: LoginScreenProps) {
   const isLogin = mode === 'login'
   const text = appCopy[language]
+  const navigate = useNavigate()
+
+  function handleModeChange(nextMode: AuthMode) {
+    onModeChange(nextMode)
+    navigate(nextMode === 'login' ? '/login' : '/register')
+  }
 
   return (
     <main className="auth-page">
@@ -94,7 +101,7 @@ function LoginScreen({
               <button
                 type="button"
                 className={isLogin ? 'active' : ''}
-                onClick={() => onModeChange('login')}
+                onClick={() => handleModeChange('login')}
                 role="tab"
                 aria-selected={isLogin}
               >
@@ -103,7 +110,7 @@ function LoginScreen({
               <button
                 type="button"
                 className={!isLogin ? 'active' : ''}
-                onClick={() => onModeChange('register')}
+                onClick={() => handleModeChange('register')}
                 role="tab"
                 aria-selected={!isLogin}
               >
@@ -116,7 +123,7 @@ function LoginScreen({
         {isLogin ? (
           <Login
             language={language}
-            onSwitchToRegister={() => onModeChange('register')}
+            onSwitchToRegister={() => handleModeChange('register')}
             onLogin={onLogin}
             serverError={authError}
             isLoading={isAuthLoading}
@@ -124,7 +131,7 @@ function LoginScreen({
         ) : (
           <Register
             language={language}
-            onSwitchToLogin={() => onModeChange('login')}
+            onSwitchToLogin={() => handleModeChange('login')}
             onRegister={onRegister}
             serverError={authError}
             isLoading={isAuthLoading}

@@ -27,26 +27,33 @@ function AppNavigator({
   toggleProgrammingLanguage,
   handleLogin,
   handleRegister,
-  handleContinueLanguageSelection,
+  handleContinueLanguageSelection: completeLanguageSelection,
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
+  const shouldCompleteLanguageSelection = isAuthenticated && !hasCompletedLanguageSelection
+  const postAuthRedirectPath = shouldCompleteLanguageSelection ? '/language-selection' : '/home'
 
   function handleOpenCourse(course: Course) {
     navigate(`/courses/${course.id}`)
+  }
+
+  function handleContinueLanguageSelection() {
+    completeLanguageSelection()
+    navigate('/home')
   }
 
   return (
     <Routes>
       <Route
         path="/"
-        element={<Navigate to="/home" replace />}
+        element={<Navigate to={postAuthRedirectPath} replace />}
       />
       <Route
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to="/home" replace />
+            <Navigate to={postAuthRedirectPath} replace />
           ) : (
             <LoginScreen
               mode="login"
@@ -67,7 +74,7 @@ function AppNavigator({
         path="/register"
         element={
           isAuthenticated ? (
-            <Navigate to="/home" replace />
+            <Navigate to={postAuthRedirectPath} replace />
           ) : (
             <LoginScreen
               mode="register"
@@ -87,7 +94,7 @@ function AppNavigator({
       <Route
         path="/language-selection"
         element={
-          isAuthenticated && !hasCompletedLanguageSelection ? (
+          shouldCompleteLanguageSelection ? (
             <LanguageSelectionScreen
               language={language}
               selectedLanguages={selectedProgrammingLanguages}
@@ -95,46 +102,72 @@ function AppNavigator({
               onContinue={handleContinueLanguageSelection}
             />
           ) : (
-            <Navigate to="/home" replace />
+            <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
           )
         }
       />
       <Route
         path="/home"
         element={
-          <HomeScreen
-            programmerPosition={programmerPosition}
-            user={currentUser}
-            selectedProgrammingLanguages={selectedProgrammingLanguages}
-            onToggleLanguage={toggleProgrammingLanguage}
-            onOpenCourse={handleOpenCourse}
-            onLogout={handleLogout}
-          />
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <HomeScreen
+              programmerPosition={programmerPosition}
+              user={currentUser}
+              selectedProgrammingLanguages={selectedProgrammingLanguages}
+              onToggleLanguage={toggleProgrammingLanguage}
+              onOpenCourse={handleOpenCourse}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route
         path="/dashboard"
         element={
-          <DashboardStudent
-            user={currentUser}
-            selectedProgrammingLanguages={selectedProgrammingLanguages}
-            onLogout={handleLogout}
-          />
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <DashboardStudent
+              user={currentUser}
+              selectedProgrammingLanguages={selectedProgrammingLanguages}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route
         path="/courses/:courseId"
-        element={<CourseDetailScreen language={language} user={currentUser} onLogout={handleLogout} />}
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <CourseDetailScreen language={language} user={currentUser} onLogout={handleLogout} />
+          )
+        }
       />
       <Route
         path="/courses/:courseId/checkout"
-        element={<CourseCheckoutScreen language={language} user={currentUser} onLogout={handleLogout} />}
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <CourseCheckoutScreen language={language} user={currentUser} onLogout={handleLogout} />
+          )
+        }
       />
       <Route
         path="/courses/:courseId/learn"
-        element={<CourseLearningScreen language={language} user={currentUser} onLogout={handleLogout} />}
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <CourseLearningScreen language={language} user={currentUser} onLogout={handleLogout} />
+          )
+        }
       />
-      <Route path="*" element={<Navigate to="/home" replace />} />
+      <Route path="*" element={<Navigate to={postAuthRedirectPath} replace />} />
     </Routes>
   )
 }
