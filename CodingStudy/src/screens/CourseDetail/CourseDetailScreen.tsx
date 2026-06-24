@@ -8,8 +8,8 @@ import type { AppUser, Language } from '../../types/user'
 import CourseDetailHero from './components/CourseDetailHero'
 import CourseDetailListPanel from './components/CourseDetailListPanel'
 import CourseDetailStats from './components/CourseDetailStats'
-import CourseLessonsPanel from './components/CourseLessonsPanel'
 import CourseTrailerPanel from './components/CourseTrailerPanel'
+import CoursePurchasePanel from './components/CoursePurchasePanel'
 
 type CourseDetailScreenProps = {
   language: Language
@@ -114,6 +114,7 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
 
   const ctaLabel = course.access === 'free' ? text.joinCourse : text.payCourse
   const ctaTarget = course.access === 'free' ? `/courses/${course.id}/learn` : `/courses/${course.id}/checkout`
+  const accessLabel = course.access === 'paid' ? (language === 'id' ? 'Selamanya' : 'Lifetime access') : (language === 'id' ? 'Gratis' : 'Free')
 
   return (
     <main className="course-detail-page">
@@ -146,10 +147,14 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
             accentLabel={text.watchOnYoutube}
           />
 
-          <CourseLessonsPanel
-            heading={`${course.modules} lessons (${totalMinutes} mins)`}
+          <CoursePurchasePanel
+            accessLabel={accessLabel}
+            title={course.title}
+            priceLabel={course.priceLabel}
+            description={course.description}
+            summaryLabel={`${course.modules} lessons (${totalMinutes} mins)`}
             lessons={lessonPreview}
-            moreLessonsLabel={remainingLessons > 0 ? `${remainingLessons} ${text.moreLessons}` : ''}
+            remainingLessonsLabel={remainingLessons > 0 ? `${remainingLessons} ${text.moreLessons}` : ''}
             ctaLabel={ctaLabel}
             onCtaClick={() => navigate(ctaTarget)}
           />

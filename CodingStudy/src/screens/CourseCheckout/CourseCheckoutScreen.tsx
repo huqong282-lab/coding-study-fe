@@ -5,6 +5,9 @@ import Navbar from '../../components/common/Navbar'
 import { courseCatalog } from '../../data/courses'
 import type { Course } from '../../types/product'
 import type { AppUser, Language } from '../../types/user'
+import CourseCheckoutHero from './components/CourseCheckoutHero'
+import CourseCheckoutOverview from './components/CourseCheckoutOverview'
+import CourseCheckoutSidebar from './components/CourseCheckoutSidebar'
 
 type CourseCheckoutScreenProps = {
   language: Language
@@ -16,20 +19,30 @@ const copy = {
   id: {
     back: 'Kembali ke detail kelas',
     title: 'Checkout Kelas',
+    subtitle: 'Selesaikan pembayaran tanpa kehilangan konteks belajar.',
     summary: 'Ringkasan pembayaran',
     payNow: 'Bayar Sekarang',
     startFree: 'Masuk ke Kelas',
     notFound: 'Kursus tidak ditemukan.',
     freeNotice: 'Kelas ini gratis, jadi kamu bisa langsung masuk tanpa pembayaran.',
+    access: 'Akses seumur hidup',
+    includes: 'Yang kamu dapatkan',
+    payment: 'Metode pembayaran',
+    security: 'Aman dan cepat',
   },
   en: {
     back: 'Back to class detail',
     title: 'Class Checkout',
+    subtitle: 'Finish the payment without losing the learning flow.',
     summary: 'Payment summary',
     payNow: 'Pay Now',
     startFree: 'Enter Class',
     notFound: 'Course not found.',
     freeNotice: 'This class is free, so you can enter it without payment.',
+    access: 'Lifetime access',
+    includes: 'What you get',
+    payment: 'Payment method',
+    security: 'Safe and fast',
   },
 }
 
@@ -61,6 +74,40 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
   }
 
   const isFree = course.access === 'free'
+  const totalModules = course.modules
+  const totalMinutes = totalModules * 3
+  const heroStats = [
+    { label: language === 'id' ? 'Harga' : 'Price', value: course.priceLabel },
+    { label: language === 'id' ? 'Mentor' : 'Mentor', value: course.mentor },
+    { label: language === 'id' ? 'Modul' : 'Modules', value: `${totalModules}` },
+    { label: language === 'id' ? 'Durasi' : 'Duration', value: course.duration },
+  ]
+  const checkoutDetails = [
+    { label: language === 'id' ? 'Format' : 'Format', value: language === 'id' ? 'Video course' : 'Video course' },
+    { label: language === 'id' ? 'Total lesson' : 'Total lessons', value: `${totalModules}` },
+    { label: language === 'id' ? 'Perkiraan durasi' : 'Approx. duration', value: `${totalMinutes} mins` },
+  ]
+  const checkoutHighlights = [
+    language === 'id' ? 'Akses langsung setelah pembayaran' : 'Instant access after payment',
+    language === 'id' ? 'Instruksi pembayaran yang jelas' : 'Clear payment instructions',
+    language === 'id' ? 'Siap lanjut ke halaman belajar' : 'Ready to continue to the learning page',
+  ]
+  const overviewItems = [
+    language === 'id'
+      ? 'Checkout ini mengikuti gaya visual kelas yang sudah ada, jadi transisinya terasa konsisten.'
+      : 'This checkout keeps the existing class visual language, so the transition feels consistent.',
+    language === 'id'
+      ? 'Panel kanan dibuat sticky agar tetap terlihat saat kamu scroll ke bawah.'
+      : 'The right panel is sticky so it stays visible while you scroll down.',
+    language === 'id'
+      ? 'Warna aksen tetap mengikuti tema gelap biru yang dipakai aplikasi.'
+      : 'The accent colors stay aligned with the existing dark blue app theme.',
+  ]
+  const paymentMethods = [
+    language === 'id' ? 'Transfer bank' : 'Bank transfer',
+    language === 'id' ? 'E-wallet' : 'E-wallet',
+    language === 'id' ? 'Kartu debit/kredit' : 'Debit/credit card',
+  ]
 
   return (
     <main className="course-checkout-page">
@@ -74,58 +121,55 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
           <span className="course-checkout-chip">{text.summary}</span>
         </div>
 
-        <div className="course-checkout-hero">
-          <div>
-            <p className="eyebrow">{course.languageName}</p>
-            <h1>{course.title}</h1>
-            <p className="course-checkout-copy">{course.description}</p>
+        <CourseCheckoutHero
+          eyebrow={text.title}
+          title={course.title}
+          description={`${text.subtitle} ${course.description}`}
+          stats={heroStats}
+        />
+
+        <div className="course-checkout-layout">
+          <div className="course-checkout-main">
+            <CourseCheckoutOverview title={text.includes} subtitle={text.access} items={overviewItems} />
+
+            <article className="course-checkout-card course-checkout-payment-card">
+              <p className="course-checkout-kicker">{text.payment}</p>
+              <h2>{isFree ? text.startFree : text.payNow}</h2>
+              <div className="course-checkout-payment-methods">
+                {paymentMethods.map((method) => (
+                  <span key={method}>{method}</span>
+                ))}
+              </div>
+              <p className="course-checkout-note">
+                {isFree ? text.freeNotice : language === 'id' ? 'Setelah bayar, kamu akan diarahkan ke halaman belajar.' : 'After payment, you will be redirected to the learning page.'}
+              </p>
+              <div className="course-checkout-steps">
+                <div>
+                  <strong>1</strong>
+                  <span>{language === 'id' ? 'Pilih metode pembayaran' : 'Choose a payment method'}</span>
+                </div>
+                <div>
+                  <strong>2</strong>
+                  <span>{language === 'id' ? 'Selesaikan pembayaran' : 'Complete the payment'}</span>
+                </div>
+                <div>
+                  <strong>3</strong>
+                  <span>{language === 'id' ? 'Masuk ke materi kelas' : 'Enter the class material'}</span>
+                </div>
+              </div>
+            </article>
           </div>
 
-          <div className="course-checkout-summary">
-            <div>
-              <small>{language === 'id' ? 'Harga' : 'Price'}</small>
-              <strong>{course.priceLabel}</strong>
-            </div>
-            <div>
-              <small>{language === 'id' ? 'Mentor' : 'Mentor'}</small>
-              <strong>{course.mentor}</strong>
-            </div>
-            <div>
-              <small>{language === 'id' ? 'Modul' : 'Modules'}</small>
-              <strong>{course.modules}</strong>
-            </div>
-            <div>
-              <small>{language === 'id' ? 'Durasi' : 'Duration'}</small>
-              <strong>{course.duration}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div className="course-checkout-grid">
-          <article className="course-checkout-card course-checkout-main-card">
-            <p className="course-checkout-kicker">{text.summary}</p>
-            <h2>{course.title}</h2>
-            <ul>
-              <li>{course.description}</li>
-              <li>{language === 'id' ? 'Akses modul penuh setelah pembayaran' : 'Full module access after payment'}</li>
-              <li>{language === 'id' ? 'Prototype checkout untuk alur demo' : 'Prototype checkout for the demo flow'}</li>
-            </ul>
-          </article>
-
-          <aside className="course-checkout-card course-checkout-side-card">
-            <p className="course-checkout-kicker">{isFree ? (language === 'id' ? 'Gratis' : 'Free') : text.summary}</p>
-            <strong className="course-checkout-price">{course.priceLabel}</strong>
-            <p className="course-checkout-note">
-              {isFree ? text.freeNotice : language === 'id' ? 'Setelah bayar, kamu akan diarahkan ke isi kelas.' : 'After payment, you will be sent to the class content.'}
-            </p>
-            <button
-              className="btn btn-primary course-checkout-action"
-              type="button"
-              onClick={() => navigate(`/courses/${course.id}/learn`)}
-            >
-              {isFree ? text.startFree : text.payNow}
-            </button>
-          </aside>
+          <CourseCheckoutSidebar
+            badge={text.summary}
+            title={course.title}
+            priceLabel={course.priceLabel}
+            note={isFree ? text.freeNotice : language === 'id' ? 'Bayar sekali untuk akses seumur hidup.' : 'Pay once for lifetime access.'}
+            details={checkoutDetails}
+            highlights={checkoutHighlights}
+            actionLabel={isFree ? text.startFree : text.payNow}
+            onActionClick={() => navigate(`/courses/${course.id}/learn`)}
+          />
         </div>
       </section>
 
