@@ -142,10 +142,11 @@ function Register({
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <label className="form-field">
-        <span>{copy.name}</span>
+    <form className="grid gap-4" onSubmit={handleSubmit} noValidate>
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">{copy.name}</span>
         <input
+          className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
           type="text"
           name="name"
           value={form.name}
@@ -154,12 +155,13 @@ function Register({
           autoComplete="name"
           aria-invalid={Boolean(errors.name)}
         />
-        {errors.name && <small>{errors.name}</small>}
+        {errors.name && <small className="text-sm text-rose-300">{errors.name}</small>}
       </label>
 
-      <label className="form-field">
-        <span>{copy.email}</span>
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">{copy.email}</span>
         <input
+          className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
           type="email"
           name="email"
           value={form.email}
@@ -168,13 +170,14 @@ function Register({
           autoComplete="email"
           aria-invalid={Boolean(errors.email)}
         />
-        {errors.email && <small>{errors.email}</small>}
+        {errors.email && <small className="text-sm text-rose-300">{errors.email}</small>}
       </label>
 
-      <label className="form-field">
-        <span>{copy.password}</span>
-        <div className="password-field">
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">{copy.password}</span>
+        <div className="relative">
           <input
+            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 pr-16 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
             type={showPassword ? 'text' : 'password'}
             name="password"
             value={form.password}
@@ -183,23 +186,28 @@ function Register({
             autoComplete="new-password"
             aria-invalid={Boolean(errors.password)}
           />
-          <button type="button" onClick={() => setShowPassword((current) => !current)}>
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-violet-300 transition hover:text-violet-200"
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+          >
             {showPassword ? copy.hide : copy.show}
           </button>
         </div>
-        {errors.password && <small>{errors.password}</small>}
+        {errors.password && <small className="text-sm text-rose-300">{errors.password}</small>}
       </label>
 
-      <div className="password-strength" aria-label="Password strength">
-        <span className={passwordScore >= 1 ? 'filled' : ''}></span>
-        <span className={passwordScore >= 2 ? 'filled' : ''}></span>
-        <span className={passwordScore >= 3 ? 'filled' : ''}></span>
-        <span className={passwordScore >= 4 ? 'filled' : ''}></span>
+      <div className="grid grid-cols-4 gap-2" aria-label="Password strength">
+        <span className={`h-1.5 rounded-full ${passwordScore >= 1 ? 'bg-violet-400' : 'bg-white/10'}`}></span>
+        <span className={`h-1.5 rounded-full ${passwordScore >= 2 ? 'bg-violet-400' : 'bg-white/10'}`}></span>
+        <span className={`h-1.5 rounded-full ${passwordScore >= 3 ? 'bg-violet-400' : 'bg-white/10'}`}></span>
+        <span className={`h-1.5 rounded-full ${passwordScore >= 4 ? 'bg-violet-400' : 'bg-white/10'}`}></span>
       </div>
 
-      <label className="form-field">
-        <span>{copy.confirmPassword}</span>
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">{copy.confirmPassword}</span>
         <input
+          className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
           type={showPassword ? 'text' : 'password'}
           name="confirmPassword"
           value={form.confirmPassword}
@@ -208,27 +216,45 @@ function Register({
           autoComplete="new-password"
           aria-invalid={Boolean(errors.confirmPassword)}
         />
-        {errors.confirmPassword && <small>{errors.confirmPassword}</small>}
+        {errors.confirmPassword && (
+          <small className="text-sm text-rose-300">{errors.confirmPassword}</small>
+        )}
       </label>
 
-      <label className="check-field">
-        <input type="checkbox" name="updates" checked={form.updates} onChange={updateField} />
-        <span>{copy.updates}</span>
+      <label className="flex items-center gap-3 text-sm text-slate-300">
+        <input
+          className="h-4 w-4 rounded border-white/20 bg-white/10 text-violet-500 accent-violet-500"
+          type="checkbox"
+          name="updates"
+          checked={form.updates}
+          onChange={updateField}
+        />
+        <span className="select-none">{copy.updates}</span>
       </label>
 
       {(submitted || serverError) && (
-        <div className={isValid && !serverError ? 'form-message success' : 'form-message error'}>
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm font-medium ${
+            isValid && !serverError
+              ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200'
+              : 'border-rose-400/20 bg-rose-400/10 text-rose-200'
+          }`}
+        >
           {serverError || (isValid ? copy.success : copy.error)}
         </div>
       )}
 
-      <button className="btn btn-primary auth-submit select-none" type="submit" disabled={isLoading}>
+      <button
+        className="mt-1 inline-flex h-12 items-center justify-center rounded-xl bg-violet-500 px-4 font-semibold text-white shadow-[0_16px_36px_rgba(124,92,255,0.35)] transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-60"
+        type="submit"
+        disabled={isLoading}
+      >
         {isLoading ? 'Loading...' : copy.submit}
       </button>
 
-      <p className="auth-switch-copy">
+      <p className="text-center text-sm text-slate-400">
         {copy.switchCopy}{' '}
-        <button type="button" onClick={onSwitchToLogin}>
+        <button className="font-semibold text-violet-300 transition hover:text-violet-200" type="button" onClick={onSwitchToLogin}>
           {copy.login}
         </button>
       </p>

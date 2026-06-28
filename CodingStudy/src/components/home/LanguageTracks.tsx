@@ -1,29 +1,47 @@
+import { courseCatalog } from '../../data/courses'
+
 const languageTracks = [
-  { name: 'Flutter', field: 'Mobile Development', mark: 'F', color: '#48c7f4' },
-  { name: 'Python', field: 'Data Science', mark: 'Py', color: '#ffd64a' },
-  { name: 'Laravel', field: 'Back-End Development', mark: 'L', color: '#ff4438' },
-  { name: 'React JS', field: 'Front-End Development', mark: 'R', color: '#61dafb' },
-  { name: 'Kotlin', field: 'Android Development', mark: 'K', color: '#ff8c2a' },
-  { name: 'Golang', field: 'Back-End Development', mark: 'Go', color: '#00add8' },
-  { name: 'Blender', field: '3D UI Design', mark: 'B', color: '#ff7a1a' },
+  { name: 'React', label: 'Frontend', icon: '⚛', color: '#8b6dff', ids: ['javascript', 'typescript'] },
+  { name: 'Python', label: 'Data & AI', icon: '◉', color: '#6ee7a8', ids: ['python'] },
+  { name: 'JavaScript', label: 'Web Dasar', icon: '●', color: '#ffd166', ids: ['javascript'] },
+  { name: 'Node.js', label: 'Backend', icon: '⬢', color: '#61d56f', ids: ['javascript', 'go'] },
+  { name: 'Flutter', label: 'Mobile', icon: '▣', color: '#ffb74d', ids: ['dart', 'kotlin'] },
+  { name: 'TypeScript', label: 'Scalable App', icon: '◈', color: '#a78bfa', ids: ['typescript'] },
+  { name: 'PHP', label: 'Web App', icon: '⚙', color: '#f59e0b', ids: ['php'] },
+  { name: 'Golang', label: 'Performance', icon: '✦', color: '#38bdf8', ids: ['go'] },
+  { name: 'Kotlin', label: 'Android', icon: '◌', color: '#c084fc', ids: ['kotlin'] },
+  { name: 'Laravel', label: 'Backend PHP', icon: '♦', color: '#fb7185', ids: ['php'] },
+  { name: 'Blender', label: '3D Design', icon: '⬟', color: '#f97316', ids: [] },
+  { name: 'AI / ML', label: 'Machine Learning', icon: '⌬', color: '#22d3ee', ids: ['python', 'sql'] },
 ]
+
+function getClassCount(ids: string[]) {
+  if (ids.length === 0) {
+    return 3
+  }
+
+  return courseCatalog.filter((course) => ids.includes(course.languageId)).length
+}
 
 function LanguageTracks() {
   return (
-    <section className="bwa-section bwa-language-section" aria-labelledby="language-title">
-      <div className="bwa-section-heading">
-        <p>Mastering Freelancer Tools</p>
-        <h1 id="language-title">Kelas Online Coding Study. Materi Paling Update.</h1>
+    <section className="home-section home-section--languages" id="tech" aria-labelledby="language-title">
+      <div className="home-section__header home-section__header--stacked">
+        <p className="home-section-kicker">TEKNOLOGI</p>
+        <h2 className="home-section-title" id="language-title">
+          Semua Bahasa & <span>Framework Populer</span>
+        </h2>
       </div>
 
-      <div className="language-track-rail">
+      <div className="language-track-grid" aria-label="Daftar bahasa pemrograman dan framework">
         {languageTracks.map((track) => (
           <article className="language-track-card" key={track.name}>
-            <span style={{ color: track.color }}>{track.mark}</span>
-            <div>
-              <h2>{track.name}</h2>
-              <p>{track.field}</p>
-            </div>
+            <span className="language-track-card__icon" style={{ color: track.color }}>
+              {track.icon}
+            </span>
+            <strong>{track.name}</strong>
+            <p>{getClassCount(track.ids)} kelas</p>
+            <small>{track.label}</small>
           </article>
         ))}
       </div>

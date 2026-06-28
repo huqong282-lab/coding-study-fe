@@ -1,64 +1,65 @@
 import { Link } from 'react-router-dom'
 
-const socialLinks = [
-  { label: 'Instagram', initial: 'IG' },
-  { label: 'Facebook', initial: 'f' },
-  { label: 'X', initial: 'X' },
-  { label: 'YouTube', initial: '▶' },
-  { label: 'LinkedIn', initial: 'in' },
-]
+const productLinks = ['Katalog Kelas', 'Roadmap Belajar', 'Komunitas', 'Blog']
+const companyLinks = ['Tentang Kami', 'Karir', 'Press Kit', 'Kontak']
+const legalLinks = ['Syarat & Ketentuan', 'Kebijakan Privasi', 'Refund Policy']
+const socialLinks = ['Instagram', 'Twitter', 'YouTube', 'Discord']
 
 function Footer() {
   return (
-    <footer className="site-footer">
-      <div className="footer-grid">
-        <section className="footer-brand" aria-label="Coding Study information">
-          <Link className="footer-logo" to="/home" aria-label="Coding Study home">
-            <span>CS</span>
-            Coding Study
+    <footer className="site-footer" id="footer">
+      <div className="site-footer__grid">
+        <section className="site-footer__brand" aria-label="Coding Study information">
+          <Link className="site-footer__logo" to="/home" aria-label="Coding Study home">
+            <span className="brand-mark" aria-hidden="true">
+              CS
+            </span>
+            <strong>Coding Study HQ</strong>
           </Link>
-          <strong>Coding Study HQ</strong>
           <p>
-            Jl. Belajar Digital No. 18, Jakarta Selatan 12860. Kelas coding
-            terarah untuk pelajar, career switcher, dan developer pemula.
+            Platform belajar coding terlengkap untuk pemula hingga profesional di Indonesia.
           </p>
-
-          <div className="footer-apps" aria-label="Download app">
-            <span>Coba GRATIS aplikasi Coding Study</span>
-            <a href="/home">Google Play</a>
-            <a href="/home">App Store</a>
-          </div>
         </section>
 
-        <section className="footer-contact" aria-label="Hubungi kami">
-          <h2>Hubungi Kami</h2>
-          <a href="https://wa.me/6281574410000">
-            <span>WA</span>
-            +62 815-7441-0000
-          </a>
-          <a href="mailto:support@codingstudy.dev">
-            <span>@</span>
-            support@codingstudy.dev
-          </a>
-          <a href="tel:+622140008000">
-            <span>☎</span>
-            021-4000-8000
-          </a>
+        <nav className="site-footer__column" aria-label="Produk">
+          <h2>Produk</h2>
+          {productLinks.map((item) => (
+            <a href="/home" key={item}>
+              {item}
+            </a>
+          ))}
+        </nav>
 
-          <div className="footer-social">
-            <h2>Ikuti Kami</h2>
-            <div>
-              {socialLinks.map((item) => (
-                <a key={item.label} href="/home" aria-label={item.label}>
-                  {item.initial}
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
+        <nav className="site-footer__column" aria-label="Perusahaan">
+          <h2>Perusahaan</h2>
+          {companyLinks.map((item) => (
+            <a href="/home" key={item}>
+              {item}
+            </a>
+          ))}
+        </nav>
+
+        <nav className="site-footer__column" aria-label="Legal">
+          <h2>Legal</h2>
+          {legalLinks.map((item) => (
+            <a href="/home" key={item}>
+              {item}
+            </a>
+          ))}
+        </nav>
       </div>
 
-      <p className="footer-copyright">©2026 Coding Study. All Rights Reserved</p>
+      <div className="site-footer__bottom">
+        <p>© 2026 Coding Study HQ. All rights reserved.</p>
+
+        <div className="site-footer__social" aria-label="Ikuti kami">
+          {socialLinks.map((item) => (
+            <a href="/home" key={item} aria-label={item}>
+              {item.slice(0, 2)}
+            </a>
+          ))}
+        </div>
+      </div>
     </footer>
   )
 }

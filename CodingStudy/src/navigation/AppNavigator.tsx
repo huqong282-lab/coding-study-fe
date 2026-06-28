@@ -58,10 +58,8 @@ function AppNavigator({
             <LoginScreen
               mode="login"
               language={language}
-              programmerPosition={programmerPosition}
               onModeChange={setMode}
               onLanguageChange={setLanguage}
-              onProgrammerPositionChange={setProgrammerPosition}
               onLogin={handleLogin}
               onRegister={handleRegister}
               authError={authError}
@@ -79,10 +77,8 @@ function AppNavigator({
             <LoginScreen
               mode="register"
               language={language}
-              programmerPosition={programmerPosition}
               onModeChange={setMode}
               onLanguageChange={setLanguage}
-              onProgrammerPositionChange={setProgrammerPosition}
               onLogin={handleLogin}
               onRegister={handleRegister}
               authError={authError}

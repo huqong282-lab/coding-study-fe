@@ -1,53 +1,54 @@
-const testimonials = [
+const benefits = [
   {
-    title: 'Alur Belajar Jelas',
-    quote: 'Cocok banget untuk pemula yang butuh arahan belajar UI dan web development.',
-    name: 'Rizqy',
-    role: 'UI/UX Designer',
+    icon: '🧰',
+    title: 'Akses Lowongan Kerja',
+    description: 'Dapatkan akses eksklusif ke job board khusus member dan koneksi ke recruiter.',
   },
   {
-    title: 'Always Up to Date',
-    quote: 'Materinya terasa relevan dengan tools yang dipakai di pekerjaan sekarang.',
-    name: 'Edi',
-    role: 'Full-Stack Developer',
+    icon: '🔎',
+    title: 'Selalu Update',
+    description: 'Kurikulum diperbarui mengikuti perkembangan teknologi dan kebutuhan industri.',
   },
   {
-    title: 'Discover and Learn',
-    quote: 'Setiap kelas punya latihan kecil yang bikin konsepnya lebih cepat nyangkut.',
-    name: 'Sharen',
-    role: 'Front-End Developer',
+    icon: '⏱',
+    title: 'Belajar Sesuai Waktu',
+    description: 'Video, materi tertulis, dan latihan soal tersedia 24/7 kapan saja kamu butuh.',
   },
   {
-    title: 'Hemat Waktu',
-    quote: 'Saya tidak perlu bingung mulai dari mana karena kurikulumnya sudah rapi.',
-    name: 'Aqil',
-    role: 'Front-End Developer',
+    icon: '🧪',
+    title: 'Project Nyata',
+    description: 'Setiap kelas punya project portfolio yang bisa langsung masuk GitHub dan resume.',
+  },
+  {
+    icon: '👥',
+    title: 'Komunitas Aktif',
+    description: 'Forum diskusi, live coding mingguan, dan peer review untuk bantu kamu konsisten.',
+  },
+  {
+    icon: '📜',
+    title: 'Sertifikat Resmi',
+    description: 'Sertifikat verifikasi yang bisa dibagikan ke LinkedIn dan dipakai untuk portfolio.',
   },
 ]
 
 function Testimonials() {
   return (
-    <section className="bwa-testimonial-section" aria-labelledby="testimonial-title">
-      <div className="testimonial-copy">
-        <p>Trusted By 900K+ Students</p>
-        <h1 id="testimonial-title">Join Our Supportive Community</h1>
-        <span>Coding Study menyediakan komunitas belajar UI/UX design dan web development untuk pemula ke mahir.</span>
-        <div className="testimonial-actions">
-          <a className="btn btn-primary" href="#library">Katalog Kelas</a>
-          <a className="btn btn-secondary" href="#testimonials">Karya Students</a>
-        </div>
+    <section className="home-section home-section--benefits" aria-labelledby="benefit-title">
+      <div className="home-section__header home-section__header--stacked">
+        <p className="home-section-kicker">MENGAPA CODING STUDY</p>
+        <h2 className="home-section-title" id="benefit-title">
+          Lebih dari Sekadar <span>Menonton Video</span>
+        </h2>
       </div>
 
-      <div className="testimonial-grid" id="testimonials">
-        {testimonials.map((item, index) => (
-          <article className="testimonial-card" key={item.title}>
-            <h2>{item.title}</h2>
-            <p>{item.quote}</p>
-            <div>
-              <span>{item.name.charAt(0)}</span>
-              <strong>{item.name}</strong>
-              <small>{item.role}</small>
-            </div>
+      <div className="benefit-grid">
+        {benefits.map((item) => (
+          <article className="benefit-card" key={item.title}>
+            <span className="benefit-card__icon" aria-hidden="true">
+              {item.icon}
+            </span>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
           </article>
         ))}
       </div>

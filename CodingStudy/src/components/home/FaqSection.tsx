@@ -1,40 +1,42 @@
 const faqs = [
   {
-    question: 'Apakah seorang pemula bisa ikut belajar?',
-    answer: 'Bisa. Materi dimulai dari fundamental, lalu naik bertahap ke project sederhana.',
+    question: 'Apakah saya harus punya pengalaman coding sebelumnya?',
+    answer: 'Tidak perlu. Jalur belajar dimulai dari fundamental dan naik bertahap sampai project nyata.',
   },
   {
-    question: 'Apakah Coding Study menyediakan beasiswa?',
-    answer: 'Beasiswa dibuka berkala melalui program promo, komunitas, dan partner tertentu.',
+    question: 'Apakah Coding Study menyediakan sertifikasi?',
+    answer: 'Ya, beberapa kelas punya sertifikat penyelesaian yang bisa dipakai untuk portfolio.',
   },
   {
-    question: 'Apakah tersedia komunitas kelas belajar?',
-    answer: 'Tersedia komunitas diskusi untuk tanya jawab, feedback project, dan networking.',
+    question: 'Bagaimana cara memilih jalur yang tepat untuk switch career?',
+    answer: 'Mulai dari posisi yang paling dekat dengan targetmu, lalu ikuti roadmap bertahap yang disarankan.',
   },
   {
-    question: 'Privilege lain apa lagi yang bisa saya dapatkan?',
-    answer: 'Kamu mendapat materi update, akses detail kelas, latihan project, dan rekomendasi belajar.',
+    question: 'Bisakah saya akses materi setelah kelas selesai?',
+    answer: 'Bisa. Akses materi tetap tersedia selama akun aktif sesuai paket yang kamu pilih.',
   },
   {
-    question: 'Bagaimana cara memulai switch career?',
-    answer: 'Mulai dari kelas dasar sesuai role, susun portfolio kecil, lalu lanjut ke kelas project.',
+    question: 'Apa itu program komunitas Coding Study?',
+    answer: 'Komunitas adalah ruang diskusi, peer review, live coding, dan networking antar member.',
   },
 ]
 
 function FaqSection() {
   return (
-    <section className="bwa-section bwa-faq-section" aria-labelledby="faq-title">
-      <div className="bwa-section-heading">
-        <p>Tanya Coding Study</p>
-        <h1 id="faq-title">Frequently Asked Questions</h1>
+    <section className="home-section home-section--faq" aria-labelledby="faq-title">
+      <div className="home-section__header home-section__header--stacked">
+        <p className="home-section-kicker">FAQ</p>
+        <h2 className="home-section-title" id="faq-title">
+          Pertanyaan yang <span>Sering Ditanya</span>
+        </h2>
       </div>
 
-      <div className="faq-grid">
+      <div className="faq-stack">
         {faqs.map((faq) => (
           <details className="faq-item" key={faq.question}>
             <summary>
-              {faq.question}
-              <span>+</span>
+              <span>{faq.question}</span>
+              <span aria-hidden="true">+</span>
             </summary>
             <p>{faq.answer}</p>
           </details>

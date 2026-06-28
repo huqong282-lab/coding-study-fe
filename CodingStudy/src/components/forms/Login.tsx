@@ -104,10 +104,11 @@ function Login({
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <label className="form-field">
-        <span>Email</span>
+    <form className="grid gap-4" onSubmit={handleSubmit} noValidate>
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">Email</span>
         <input
+          className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
           type="email"
           name="email"
           value={form.email}
@@ -116,13 +117,14 @@ function Login({
           autoComplete="email"
           aria-invalid={Boolean(errors.email)}
         />
-        {errors.email && <small>{errors.email}</small>}
+        {errors.email && <small className="text-sm text-rose-300">{errors.email}</small>}
       </label>
 
-      <label className="form-field">
-        <span>Password</span>
-        <div className="password-field">
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-slate-300">Password</span>
+        <div className="relative">
           <input
+            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 pr-16 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
             type={showPassword ? 'text' : 'password'}
             name="password"
             value={form.password}
@@ -131,41 +133,56 @@ function Login({
             autoComplete="current-password"
             aria-invalid={Boolean(errors.password)}
           />
-          <button type="button" onClick={() => setShowPassword((current) => !current)}>
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-violet-300 transition hover:text-violet-200"
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+          >
             {showPassword ? copy.hide : copy.show}
           </button>
         </div>
-        {errors.password && <small>{errors.password}</small>}
+        {errors.password && <small className="text-sm text-rose-300">{errors.password}</small>}
       </label>
 
-      <div className="form-row">
-        <label className="check-field">
+      <div className="flex items-center justify-between gap-4">
+        <label className="flex items-center gap-3 text-sm text-slate-300">
           <input
+            className="h-4 w-4 rounded border-white/20 bg-white/10 text-violet-500 accent-violet-500"
             type="checkbox"
             name="remember"
             checked={form.remember}
             onChange={updateField}
           />
-          <span>{copy.remember}</span>
+          <span className="select-none">{copy.remember}</span>
         </label>
-        <button className="text-button" type="button">
+        <button className="text-sm font-semibold text-violet-300 transition hover:text-violet-200" type="button">
           {copy.forgotPassword}
         </button>
       </div>
 
       {(submitted || serverError) && (
-        <div className={isValid && !serverError ? 'form-message success' : 'form-message error'}>
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm font-medium ${
+            isValid && !serverError
+              ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200'
+              : 'border-rose-400/20 bg-rose-400/10 text-rose-200'
+          }`}
+        >
           {serverError || (isValid ? copy.success : copy.error)}
         </div>
       )}
 
-      <button className="btn btn-primary auth-submit select-none" type="submit" disabled={isLoading}>
+      <button
+        className="mt-1 inline-flex h-12 items-center justify-center rounded-xl bg-violet-500 px-4 font-semibold text-white shadow-[0_16px_36px_rgba(124,92,255,0.35)] transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-60"
+        type="submit"
+        disabled={isLoading}
+      >
         {isLoading ? 'Loading...' : copy.submit}
       </button>
 
-      <p className="auth-switch-copy">
+      <p className="text-center text-sm text-slate-400">
         {copy.switchCopy}{' '}
-        <button type="button" onClick={onSwitchToRegister}>
+        <button className="font-semibold text-violet-300 transition hover:text-violet-200" type="button" onClick={onSwitchToRegister}>
           {copy.register}
         </button>
       </p>

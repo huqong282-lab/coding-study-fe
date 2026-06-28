@@ -1,16 +1,18 @@
-const partners = ['BCA', 'J&T Express', 'tokopedia', 'tiket.com', 'Kawan Lama', 'traveloka', 'Grab', 'Bluebird', 'Telkomsel', 'BANK DKI', '30+ More']
+const partners = ['BCA', 'J&T Express', 'Telkom', 'UberLearn', 'Kawan Lama', 'Iconlabs', 'Grab', 'Bluebird', 'TaRumsel', 'BANK DKI']
 
 function BrandPartners() {
   return (
-    <section className="bwa-section bwa-partner-section" aria-labelledby="partner-title">
-      <div className="bwa-section-heading">
-        <p>Mengikuti Jejak Orang Sukses</p>
-        <h1 id="partner-title">Alumni Coding Study Bekerja Pada Perusahaan Besar dan Terkenal</h1>
+    <section className="home-section home-section--partners" id="community" aria-labelledby="partner-title">
+      <div className="home-section__header home-section__header--center">
+        <p className="home-section-kicker">ALUMNI BEKERJA DI</p>
+        <h2 className="home-section-title home-section-title--compact" id="partner-title">
+          Ribuan alumni Coding Study sudah berkarir di perusahaan ternama
+        </h2>
       </div>
 
-      <div className="partner-grid" aria-label="Brand partner dan perusahaan alumni">
+      <div className="partner-marquee" aria-label="Brand partner dan perusahaan alumni">
         {partners.map((partner) => (
-          <div className="partner-logo-card" key={partner}>
+          <div className="partner-marquee__item" key={partner}>
             {partner}
           </div>
         ))}

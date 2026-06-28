@@ -3,56 +3,33 @@ import type { Course } from '../../types/product'
 
 type CourseShowcaseProps = {
   courses: Course[]
+  activeTopic: string
+  learningLanguages: string[]
+  languageOptions: Array<{ id: string; name: string }>
+  isInterestPanelOpen: boolean
+  onToggleLanguage: (languageId: string) => void
   onOpenCourse?: (course: Course) => void
+  onOpenAllTopic: () => void
+  onSelectTopic: (languageId: string) => void
+  onShowInterestPanel: () => void
+  getLanguageLabel: (languageId: string) => string
 }
 
-const thumbnailThemes = [
-  {
-    accent: '#36d1dc',
-    panel: '#201a4d',
-    shape: 'Web',
-  },
-  {
-    accent: '#ffb84d',
-    panel: '#133f63',
-    shape: 'Code',
-  },
-  {
-    accent: '#7c5cff',
-    panel: '#263d2d',
-    shape: 'API',
-  },
-  {
-    accent: '#2ed47a',
-    panel: '#412143',
-    shape: 'Data',
-  },
-]
+const coursePreviewIcons = ['◎', '◈', '⬡', '◌']
 
-function CourseThumbnail({ index, title }: { index: number; title: string }) {
-  const theme = thumbnailThemes[index % thumbnailThemes.length]
-
-  return (
-    <div className="bwa-course-thumbnail" style={{ backgroundColor: theme.panel }}>
-      <div className="thumbnail-window">
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="thumbnail-card-main" style={{ borderColor: theme.accent }}>
-        <strong>{theme.shape}</strong>
-        <small>{title.split(' ').slice(0, 2).join(' ')}</small>
-      </div>
-      <div className="thumbnail-code-lines" aria-hidden="true">
-        <span style={{ width: '72%' }} />
-        <span style={{ width: '54%' }} />
-        <span style={{ width: '84%' }} />
-      </div>
-    </div>
-  )
-}
-
-function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
+function CourseShowcase({
+  courses,
+  activeTopic,
+  learningLanguages,
+  languageOptions,
+  isInterestPanelOpen,
+  onToggleLanguage,
+  onOpenCourse,
+  onOpenAllTopic,
+  onSelectTopic,
+  onShowInterestPanel,
+  getLanguageLabel,
+}: CourseShowcaseProps) {
   const railRef = useRef<HTMLDivElement>(null)
   const carouselCourses = useMemo(() => [...courses, ...courses, ...courses], [courses])
 
@@ -87,22 +64,82 @@ function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
   }
 
   return (
-    <section className="bwa-section bwa-course-section" id="library" aria-labelledby="bwa-course-title">
-      <div className="bwa-section-heading">
-        <p>Rekomendasi Kelas</p>
-        <h1 id="bwa-course-title">Kelas Online Sesuai Dengan Karirmu</h1>
+    <section className="home-section home-section--courses" id="classes" aria-labelledby="home-course-title">
+      <div className="home-section__header">
+        <div>
+          <p className="home-section-kicker">KATALOG KELAS</p>
+          <h2 className="home-section-title" id="home-course-title">
+            Kelas Pilihan <span>Terpopuler</span>
+          </h2>
+        </div>
+
+        <div className="home-course-controls">
+          <div className="home-course-arrows" aria-hidden="true">
+            <button type="button" tabIndex={-1}>
+              ←
+            </button>
+            <button type="button" tabIndex={-1}>
+              →
+            </button>
+          </div>
+
+          <div className="home-course-filters" aria-label="Pilih topik kursus">
+            <button className={activeTopic === 'all' ? 'is-active' : ''} type="button" onClick={onOpenAllTopic}>
+              Semua
+            </button>
+            {learningLanguages.map((languageId) => (
+              <button
+                className={activeTopic === languageId ? 'is-active' : ''}
+                key={languageId}
+                type="button"
+                onClick={() => onSelectTopic(languageId)}
+              >
+                {getLanguageLabel(languageId)}
+              </button>
+            ))}
+            <button
+              className="home-course-filters__more"
+              type="button"
+              onClick={onShowInterestPanel}
+              aria-expanded={isInterestPanelOpen}
+            >
+              {isInterestPanelOpen ? 'Sembunyikan' : 'Tambah Minat'}
+            </button>
+          </div>
+        </div>
       </div>
 
+      {isInterestPanelOpen && (
+        <div className="home-interest-panel" aria-label="Tambah minat bahasa pemrograman">
+          {languageOptions.map((item) => {
+            const isSelected = learningLanguages.includes(item.id)
+
+            return (
+              <button
+                className={isSelected ? 'is-selected' : ''}
+                key={item.id}
+                type="button"
+                onClick={() => onToggleLanguage(item.id)}
+                aria-pressed={isSelected}
+              >
+                <span>{item.name}</span>
+                <small>{isSelected ? 'Dipilih' : 'Tambah'}</small>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       <div
-        className="bwa-course-rail"
+        className="home-course-rail"
         ref={railRef}
         aria-label="Daftar kelas pilihan"
         role="list"
         onWheel={handleWheel}
       >
         {carouselCourses.map((course, index) => (
-          <div
-            className="bwa-course-card"
+          <article
+            className="home-course-card"
             key={`${course.id}-${index}`}
             role="button"
             tabIndex={0}
@@ -115,30 +152,25 @@ function CourseShowcase({ courses, onOpenCourse }: CourseShowcaseProps) {
               }
             }}
           >
-            <div className="bwa-course-media" aria-hidden="true">
-              <CourseThumbnail index={index} title={course.title} />
-              <span className="bwa-video-overlay">
-                <span className="bwa-play-icon">Play</span>
-                Mulai Video
+            <div className="home-course-card__media" aria-hidden="true">
+              <span className={`home-course-card__badge ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                {course.access === 'free' ? 'Hot' : 'Populer'}
               </span>
+              <div className="home-course-card__icon">{coursePreviewIcons[index % coursePreviewIcons.length]}</div>
             </div>
 
-            <div className="bwa-course-body">
-              <h2>{course.title}</h2>
-              <p>{course.duration} belajar intensif</p>
-              <div className="bwa-course-rating" aria-label={`Rating ${course.rating}`}>
-                <span>Stars</span>
-                <strong>({course.rating})</strong>
-              </div>
-              <div className="bwa-course-footer">
-                <span>{course.level}</span>
-                <span>{course.modules} materi</span>
-                <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+            <div className="home-course-card__body">
+              <span className="home-course-card__level">{course.level}</span>
+              <h3>{course.title}</h3>
+              <p>Oleh {course.mentor}</p>
+              <div className="home-course-card__meta" aria-label="Informasi harga kelas">
+                <span className={`home-course-card__price ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
                   {course.priceLabel}
                 </span>
+                <span className="home-course-card__access">{course.access === 'free' ? 'Gratis' : 'Premium'}</span>
               </div>
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </section>
