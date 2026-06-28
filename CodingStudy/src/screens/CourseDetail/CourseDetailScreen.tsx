@@ -20,47 +20,41 @@ type CourseDetailScreenProps = {
 const copy = {
   id: {
     back: 'Kembali ke beranda',
-    overview: 'Ringkasan kursus',
-    released: 'Rilis',
-    updated: 'Terakhir diperbarui',
-    members: 'Member',
-    lessonType: 'Tipe lesson',
-    certificate: 'Sertifikat',
-    consultation: 'Konsultasi',
-    outcomes: 'Hasil belajar',
-    syllabus: 'Silabus',
-    mentor: 'Mentor',
+    breadcrumbHome: 'Beranda',
+    outcomes: 'Yang Akan Kamu Pelajari',
+    syllabus: 'Kurikulum',
+    rating: 'Rating',
     modules: 'Modul',
     duration: 'Durasi',
-    rating: 'Rating',
-    courseType: 'Video Only',
-    joinCourse: 'Gabung Kelas',
-    payCourse: 'Bayar',
-    moreLessons: 'lebih banyak lesson',
-    watchOnYoutube: 'Tonton di YouTube',
     notFound: 'Kursus tidak ditemukan.',
+    tabs: ['Ringkasan', 'Kurikulum', 'Instruktur', 'Ulasan', 'Harga'],
+    previewVideo: 'Preview Video',
+    lessonPreview: 'Preview lesson',
+    free: 'Gratis',
+    premium: 'Premium',
+    startFree: 'Daftar Kelas Sekarang',
+    payNow: 'Bayar Sekarang',
+    lifetimeAccess: 'Akses seumur hidup',
+    instantAccess: 'Langsung akses setelah daftar',
   },
   en: {
     back: 'Back to home',
-    overview: 'Course overview',
-    released: 'Released',
-    updated: 'Last updated',
-    members: 'Members',
-    lessonType: 'Lesson type',
-    certificate: 'Certificate',
-    consultation: 'Consultation',
-    outcomes: 'Learning outcomes',
-    syllabus: 'Syllabus',
-    mentor: 'Mentor',
+    breadcrumbHome: 'Home',
+    outcomes: 'What You Will Learn',
+    syllabus: 'Curriculum',
+    rating: 'Rating',
     modules: 'Modules',
     duration: 'Duration',
-    rating: 'Rating',
-    courseType: 'Video Only',
-    joinCourse: 'Join Class',
-    payCourse: 'Pay',
-    moreLessons: 'more lessons',
-    watchOnYoutube: 'Watch on YouTube',
     notFound: 'Course not found.',
+    tabs: ['Summary', 'Curriculum', 'Instructor', 'Reviews', 'Pricing'],
+    previewVideo: 'Preview Video',
+    lessonPreview: 'Lesson preview',
+    free: 'Free',
+    premium: 'Premium',
+    startFree: 'Join Class Now',
+    payNow: 'Pay Now',
+    lifetimeAccess: 'Lifetime access',
+    instantAccess: 'Instant access after signup',
   },
 }
 
@@ -76,11 +70,16 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
 
   const lessonPreview = useMemo(
     () =>
-      course?.syllabus.slice(0, 4).map((lesson, index) => ({
-        title: lesson,
-        duration: `${Math.max(3, 5 - Math.min(index, 2))} ${language === 'id' ? 'menit' : 'mins'}`,
-      })) ?? [],
-    [course, language],
+      course?.syllabus.slice(0, 5).map((lesson, index) => {
+        const isPreviewFree = course.access === 'free' || index < 2
+
+        return {
+          title: lesson,
+          duration: `${Math.max(3, 5 - Math.min(index, 2))} ${language === 'id' ? 'menit' : 'mins'}`,
+          accessLabel: isPreviewFree ? text.free : text.premium,
+        }
+      }) ?? [],
+    [course, language, text.free, text.premium],
   )
 
   if (!course) {
@@ -98,73 +97,93 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
     )
   }
 
-  const remainingLessons = Math.max(course.modules - lessonPreview.length, 0)
   const totalMinutes = course.modules * 3
+  const isFree = course.access === 'free'
+  const accessLabel = isFree ? text.free : text.premium
+  const ctaLabel = isFree ? text.startFree : text.payNow
+  const ctaTarget = isFree ? `/courses/${course.id}/learn` : `/courses/${course.id}/checkout`
   const heroSnapshots = [
-    { label: text.released, value: 'June 2022' },
-    { label: text.updated, value: 'June 2026' },
+    { label: language === 'id' ? 'Rilis' : 'Released', value: 'June 2022' },
+    { label: language === 'id' ? 'Update' : 'Updated', value: 'June 2026' },
   ]
   const stats = [
-    { label: text.members, value: `${(course.modules * 1650).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} enrolled` },
-    { label: text.lessonType, value: text.courseType },
-    { label: language === 'id' ? 'Tingkatan' : 'Level', value: course.level },
+    { label: text.rating, value: `${course.rating.toFixed(1)} / 5` },
+    {
+      label: language === 'id' ? 'Siswa' : 'Students',
+      value: `${(course.modules * 1650).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}+`,
+    },
+    { label: text.modules, value: `${course.modules}` },
+    { label: text.duration, value: course.duration },
     { label: language === 'id' ? 'Akses' : 'Access', value: course.priceLabel },
-    { label: text.certificate, value: '✓' },
   ]
-
-  const ctaLabel = course.access === 'free' ? text.joinCourse : text.payCourse
-  const ctaTarget = course.access === 'free' ? `/courses/${course.id}/learn` : `/courses/${course.id}/checkout`
-  const accessLabel = course.access === 'paid' ? (language === 'id' ? 'Selamanya' : 'Lifetime access') : (language === 'id' ? 'Gratis' : 'Free')
 
   return (
     <main className="course-detail-page">
       <Navbar user={user} onLogout={onLogout} />
+
       <section className="course-detail-shell">
         <div className="course-detail-page-actions">
-          <button
-            className="btn btn-secondary course-detail-back-btn course-detail-back-btn-floating"
-            type="button"
-            onClick={() => navigate('/home')}
-          >
+          <button className="btn btn-secondary course-detail-back-btn" type="button" onClick={() => navigate('/home')}>
             {text.back}
           </button>
         </div>
 
-        <CourseDetailHero
-          eyebrow={text.overview}
-          title={course.title}
-          description={course.description}
-          snapshots={heroSnapshots}
-          badges={[course.languageName, course.level, `${text.modules}: ${course.modules}`, course.priceLabel]}
-        />
+        <nav className="course-detail-breadcrumbs" aria-label="Breadcrumb">
+          <span>{text.breadcrumbHome}</span>
+          <span>/</span>
+          <span>{course.languageName}</span>
+          <span>/</span>
+          <strong>{course.title}</strong>
+        </nav>
 
-        <CourseDetailStats items={stats} />
-
-        <div className="course-detail-main-grid">
-          <CourseTrailerPanel
-            title={`Trailer Kelas ${course.title} [Gratis]`}
-            mentor={course.mentor}
-            accentLabel={text.watchOnYoutube}
+        <div className="course-detail-hero-layout">
+          <CourseDetailHero
+            eyebrow={course.languageName}
+            title={course.title}
+            description={course.description}
+            snapshots={heroSnapshots}
+            badges={[course.level, `${text.modules}: ${course.modules}`, course.priceLabel, course.mentor]}
           />
 
           <CoursePurchasePanel
             accessLabel={accessLabel}
+            accessTone={course.access}
             title={course.title}
             priceLabel={course.priceLabel}
             description={course.description}
             summaryLabel={`${course.modules} lessons (${totalMinutes} mins)`}
-            lessons={lessonPreview}
-            remainingLessonsLabel={remainingLessons > 0 ? `${remainingLessons} ${text.moreLessons}` : ''}
             ctaLabel={ctaLabel}
+            ctaNote={isFree ? text.instantAccess : text.lifetimeAccess}
             onCtaClick={() => navigate(ctaTarget)}
           />
         </div>
 
+        <CourseDetailStats items={stats} />
+
+        <div className="course-detail-tabs" role="tablist" aria-label="Course detail tabs">
+          {text.tabs.map((tab, index) => (
+            <button className={index === 0 ? 'is-active' : ''} key={tab} type="button">
+              {tab}
+            </button>
+          ))}
+        </div>
+
         <div className="course-detail-content-grid">
-          <CourseDetailListPanel eyebrow={text.outcomes} title={text.outcomes} items={course.outcomes} />
-          <CourseDetailListPanel eyebrow={text.syllabus} title={text.syllabus} items={course.syllabus} variant="numbered" />
+          <div className="course-detail-main-column">
+            <CourseDetailListPanel eyebrow={text.outcomes} title={text.outcomes} items={course.outcomes} />
+            <CourseDetailListPanel eyebrow={text.syllabus} title={text.syllabus} items={course.syllabus} variant="numbered" />
+          </div>
+
+          <CourseTrailerPanel
+            title={text.previewVideo}
+            mentor={course.mentor}
+            accentLabel={text.lessonPreview}
+            lessons={lessonPreview}
+            accessLabel={accessLabel}
+          />
         </div>
       </section>
+
       <Footer />
     </main>
   )

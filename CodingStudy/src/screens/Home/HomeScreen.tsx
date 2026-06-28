@@ -37,7 +37,6 @@ function HomeScreen({
     selectTopic,
     showInterestPanel,
   } = useHomeCourses(selectedProgrammingLanguages, programmerPosition)
-  const firstName = user?.name.trim().split(' ')[0] || 'Learner'
 
   function handleOpenCourse(course: Course) {
     onOpenCourse(course)
@@ -47,133 +46,87 @@ function HomeScreen({
     <main className="home-page">
       <Navbar user={user ?? undefined} onLogout={onLogout} />
 
-      <section className="home-welcome" id="top">
-        <div>
-          <p className="home-greeting">👋 Selamat datang, {firstName}!</p>
-          <p className="home-profile-email">
-            {user ? user.email : 'Masuk untuk menyimpan progres, kelas, dan pengaturanmu.'}
-          </p>
-          <div className="home-focus-row" aria-label="Fokus belajar saat ini">
-            <span>Fokus belajarmu saat ini:</span>
-            {learningLanguages.slice(0, 4).map((languageId) => (
-              <strong key={languageId}>{getLanguageLabel(languageId)}</strong>
-            ))}
+      <section className="home-hero" id="top" aria-labelledby="home-hero-title">
+        <div className="home-hero__badge">
+          <span className="home-hero__dot" aria-hidden="true" />
+          Platform belajar coding terlengkap 2025
+        </div>
+
+        <div className="home-hero__layout">
+          <div className="home-hero__copy">
+            <p className="home-section-kicker">KOMUNITAS BELAJAR CODING</p>
+            <h1 className="home-hero__title" id="home-hero-title">
+              Kuasai <span>Coding</span> Bersama Komunitas.
+            </h1>
+            <p className="home-hero__description">
+              Belajar pemrograman dengan kurikulum terstruktur, mentor berpengalaman, dan komunitas
+              aktif yang mendukung perjalananmu dari nol sampai siap kerja.
+            </p>
+
+            <div className="home-hero__actions">
+              <a className="btn btn-primary" href="#classes">
+                Mulai Belajar Gratis
+              </a>
+              <a className="btn btn-secondary" href="#tech">
+                Lihat Kelas
+              </a>
+            </div>
+          </div>
+
+          <div className="home-hero__visual" aria-hidden="true">
+            <div className="home-hero__orb home-hero__orb--one" />
+            <div className="home-hero__orb home-hero__orb--two" />
+            <div className="home-hero__panel">
+              <span className="home-hero__panel-label">Community-driven learning</span>
+              <strong>Belajar lebih cepat bersama mentor, project, dan peer review.</strong>
+              <div className="home-hero__panel-grid">
+                <div>
+                  <span>12.400+</span>
+                  <small>Siswa aktif</small>
+                </div>
+                <div>
+                  <span>80+</span>
+                  <small>Kelas tersedia</small>
+                </div>
+                <div>
+                  <span>4.9/5</span>
+                  <small>Rating rata-rata</small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="home-content" id="classes">
-        <div className="topic-filter" aria-label="Pilih topik kursus">
-          <span>Pilih Topik:</span>
-          <button
-            className={activeTopic === 'all' ? 'is-active' : ''}
-            type="button"
-            onClick={openAllTopic}
-          >
-            Semua
-          </button>
-          {learningLanguages.map((languageId) => (
-            <button
-              className={activeTopic === languageId ? 'is-active' : ''}
-              key={languageId}
-              type="button"
-              onClick={() => selectTopic(languageId)}
-            >
-              {getLanguageLabel(languageId)}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={showInterestPanel}
-            aria-expanded={isInterestPanelOpen}
-          >
-            + Tambah Minat
-          </button>
+      <section className="home-stats" aria-label="Statistik Coding Study">
+        <div>
+          <strong>12.400+</strong>
+          <span>Siswa Aktif</span>
         </div>
+        <div>
+          <strong>80+</strong>
+          <span>Kelas Tersedia</span>
+        </div>
+        <div>
+          <strong>4.9/5</strong>
+          <span>Rating Rata-rata</span>
+        </div>
+      </section>
 
-        {isInterestPanelOpen && (
-          <div className="interest-panel" aria-label="Tambah minat bahasa pemrograman">
-            <div>
-              <strong>Pilih bahasa tambahan</strong>
-              <p>Rekomendasi kursus akan langsung ikut berubah.</p>
-            </div>
-            <div className="interest-option-grid">
-              {languageOptions.map((item) => {
-                const isSelected = selectedProgrammingLanguages.includes(item.id)
-
-                return (
-                  <button
-                    className={isSelected ? 'is-selected' : ''}
-                    key={item.id}
-                    type="button"
-                    onClick={() => onToggleLanguage(item.id)}
-                    aria-pressed={isSelected}
-                  >
-                    <span>{item.name}</span>
-                    <small>{isSelected ? 'Dipilih' : 'Tambah'}</small>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        <section className="course-recommendation" id="legacy-library" aria-labelledby="recommendation-title">
-          <div className="recommendation-heading">
-            <p className="eyebrow">🎯 Rekomendasi kursus untukmu</p>
-            <h1 id="recommendation-title">Pilih kelas lalu lihat detailnya dulu</h1>
-            <p className="recommendation-copy">
-              Setiap kelas akan membuka halaman detail berisi ringkasan materi sebelum kamu lanjut
-              belajar.
-            </p>
-          </div>
-
-          <div className="course-card-grid">
-            {displayedCourses.map((course) => (
-              <article
-                className="recommendation-card"
-                key={course.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Buka detail kursus ${course.title}`}
-                onClick={() => handleOpenCourse(course)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    handleOpenCourse(course)
-                  }
-                }}
-              >
-                <div className="recommendation-card-top">
-                  <span className="course-tag">{course.languageName}</span>
-                  <span className="course-pill">Detail kursus</span>
-                </div>
-                <h2>{course.title}</h2>
-                <p>{course.description}</p>
-                <div className="course-meta">
-                  <span>⭐ {course.rating}</span>
-                  <span>{course.modules} modul</span>
-                  <span>{course.duration}</span>
-                  <span className={`price-pill ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
-                    {course.priceLabel}
-                  </span>
-                </div>
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    handleOpenCourse(course)
-                  }}
-                >
-                  Mulai Belajar
-                </button>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <CourseShowcase courses={displayedCourses} onOpenCourse={onOpenCourse} />
+      <section className="home-content" id="classes">
+        <CourseShowcase
+          courses={displayedCourses}
+          onOpenCourse={handleOpenCourse}
+          activeTopic={activeTopic}
+          learningLanguages={learningLanguages}
+          languageOptions={languageOptions}
+          isInterestPanelOpen={isInterestPanelOpen}
+          onToggleLanguage={onToggleLanguage}
+          onOpenAllTopic={openAllTopic}
+          onSelectTopic={selectTopic}
+          onShowInterestPanel={showInterestPanel}
+          getLanguageLabel={getLanguageLabel}
+        />
         <LanguageTracks />
         <BrandPartners />
         <Testimonials />
