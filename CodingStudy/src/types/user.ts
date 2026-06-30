@@ -1,0 +1,63 @@
+export type Language = 'id' | 'en'
+
+export type AuthMode = 'login' | 'register'
+
+export type AppRole = 'student' | 'mentor'
+
+export type ProgrammerPosition =
+  | 'frontend'
+  | 'backend'
+  | 'fullstack'
+  | 'mobile'
+  | 'devops'
+  | 'data'
+
+export type AppUser = {
+  id: number
+  name: string
+  email: string
+  role?: AppRole
+}
+
+export type AuthCredentials = {
+  email: string
+  password: string
+  role: AppRole
+}
+
+export type RegisterCredentials = {
+  name: string
+  email: string
+  password: string
+}
+
+export type AuthSession = {
+  user: AppUser
+  accessToken: string
+}
+
+export type AppFlowState = {
+  mode: AuthMode
+  language: Language
+  programmerPosition: ProgrammerPosition
+  isAuthenticated: boolean
+  hasCompletedLanguageSelection: boolean
+  selectedProgrammingLanguages: string[]
+  currentUser: AppUser | null
+  accessToken: string
+  authError: string
+  isAuthLoading: boolean
+}
+
+export type AppFlowActions = {
+  setMode: (mode: AuthMode) => void
+  setLanguage: (language: Language) => void
+  setProgrammerPosition: (position: ProgrammerPosition) => void
+  toggleProgrammingLanguage: (languageId: string) => void
+  handleLogin: (credentials: AuthCredentials) => Promise<void>
+  handleRegister: (user: RegisterCredentials) => Promise<void>
+  handleContinueLanguageSelection: () => void
+  handleLogout: () => void
+}
+
+export type AppFlowController = AppFlowState & AppFlowActions
