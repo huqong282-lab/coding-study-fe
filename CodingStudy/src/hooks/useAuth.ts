@@ -48,7 +48,10 @@ export function useAuth(): AppFlowController {
       return
     }
 
-    setCurrentUser(result.user)
+    setCurrentUser({
+      ...result.user,
+      role: credentials.role,
+    })
     setAccessToken(result.accessToken)
     setIsAuthenticated(true)
   }

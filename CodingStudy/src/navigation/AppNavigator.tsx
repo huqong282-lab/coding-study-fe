@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CourseDetailScreen from '../screens/CourseDetail/CourseDetailScreen'
 import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen'
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
+import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
@@ -124,6 +125,8 @@ function AppNavigator({
         element={
           shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
+          ) : currentUser?.role === 'mentor' ? (
+            <DashboardMentor user={currentUser} onLogout={handleLogout} />
           ) : (
             <DashboardStudent
               user={currentUser}
