@@ -10,6 +10,7 @@ import type {
   RegisterCredentials,
 } from '../types/user'
 import { useFetch } from './useFetch'
+import { useOnboarding } from './useOnboarding'
 
 const initialLanguage: Language = 'id'
 const initialPosition: ProgrammerPosition = 'frontend'
@@ -21,23 +22,31 @@ export function useAuth(): AppFlowController {
     useState<ProgrammerPosition>(initialPosition)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [hasCompletedLanguageSelection, setHasCompletedLanguageSelection] = useState(false)
-  const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState<string[]>([])
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null)
   const [accessToken, setAccessToken] = useState('')
 
   const loginRequest = useFetch(authServices.login)
   const registerRequest = useFetch(authServices.register)
+  const {
+    selectedProgrammingLanguages,
+    onboardingCategories,
+    isOnboardingLoading,
+    onboardingError,
+    toggleProgrammingLanguage,
+    handleContinueLanguageSelection,
+    resetOnboardingState,
+  } = useOnboarding({
+    accessToken,
+    onCompleted: () => {
+      setHasCompletedLanguageSelection(true)
+      setCurrentUser((user) =>
+        user ? { ...user, onboardingCompleted: true } : user,
+      )
+    },
+  })
 
   const authError = loginRequest.error || registerRequest.error
   const isAuthLoading = loginRequest.isLoading || registerRequest.isLoading
-
-  function toggleProgrammingLanguage(languageId: string) {
-    setSelectedProgrammingLanguages((currentLanguages) =>
-      currentLanguages.includes(languageId)
-        ? currentLanguages.filter((item) => item !== languageId)
-        : [...currentLanguages, languageId],
-    )
-  }
 
   async function handleLogin(credentials: AuthCredentials) {
     loginRequest.reset()
@@ -51,6 +60,7 @@ export function useAuth(): AppFlowController {
     setCurrentUser(result.user)
     setAccessToken(result.accessToken)
     setIsAuthenticated(true)
+    setHasCompletedLanguageSelection(Boolean(result.user.onboardingCompleted))
   }
 
   async function handleRegister(user: RegisterCredentials) {
@@ -65,19 +75,15 @@ export function useAuth(): AppFlowController {
     setMode('login')
   }
 
-  function handleContinueLanguageSelection() {
-    setHasCompletedLanguageSelection(true)
-  }
-
   function handleLogout() {
     setIsAuthenticated(false)
     setAccessToken('')
     setCurrentUser(null)
     setHasCompletedLanguageSelection(false)
-    setSelectedProgrammingLanguages([])
     setMode('login')
     loginRequest.reset()
     registerRequest.reset()
+    resetOnboardingState()
   }
 
   return {
@@ -89,6 +95,9 @@ export function useAuth(): AppFlowController {
     selectedProgrammingLanguages,
     currentUser,
     accessToken,
+    onboardingCategories,
+    isOnboardingLoading,
+    onboardingError,
     authError,
     isAuthLoading,
     setMode,

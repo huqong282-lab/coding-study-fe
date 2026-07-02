@@ -15,6 +15,13 @@ export type AppUser = {
   name: string
   email: string
   role?: string
+  onboardingCompleted?: boolean
+}
+
+export type OnboardingCategory = {
+  id: string
+  name: string
+  description?: string | null
 }
 
 export type AuthCredentials = {
@@ -40,6 +47,9 @@ export type AppFlowState = {
   selectedProgrammingLanguages: string[]
   currentUser: AppUser | null
   accessToken: string
+  onboardingCategories: OnboardingCategory[]
+  isOnboardingLoading: boolean
+  onboardingError: string
   authError: string
   isAuthLoading: boolean
 }
@@ -51,7 +61,7 @@ export type AppFlowActions = {
   toggleProgrammingLanguage: (languageId: string) => void
   handleLogin: (credentials: AuthCredentials) => Promise<void>
   handleRegister: (user: RegisterCredentials) => Promise<void>
-  handleContinueLanguageSelection: () => void
+  handleContinueLanguageSelection: () => Promise<boolean>
   handleLogout: () => void
 }
 
