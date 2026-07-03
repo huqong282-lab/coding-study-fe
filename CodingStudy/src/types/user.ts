@@ -72,6 +72,7 @@ export type AppFlowActions = {
   handleLogin: (credentials: AuthCredentials) => Promise<void>
   handleRegister: (user: RegisterCredentials) => Promise<void>
   handleContinueLanguageSelection: () => Promise<boolean>
+  handleSkipLanguageSelection: () => void
   handleLogout: () => void
 }
 

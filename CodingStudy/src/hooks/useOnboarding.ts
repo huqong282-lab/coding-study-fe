@@ -6,6 +6,7 @@ import { useFetch } from './useFetch'
 type UseOnboardingOptions = {
   accessToken: string
   onCompleted?: () => void
+  initialSelectedProgrammingLanguages?: string[]
 }
 
 export const normalizeCategoryKey = (categoryName: string) =>
@@ -23,8 +24,14 @@ const localOnboardingCategories: OnboardingCategory[] = [
   { id: 'sql', name: 'SQL', description: 'Bahasa query untuk mengelola database.' },
 ]
 
-export function useOnboarding({ accessToken, onCompleted }: UseOnboardingOptions) {
-  const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState<string[]>([])
+export function useOnboarding({
+  accessToken,
+  onCompleted,
+  initialSelectedProgrammingLanguages = [],
+}: UseOnboardingOptions) {
+  const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState<string[]>(
+    initialSelectedProgrammingLanguages,
+  )
   const [onboardingError, setOnboardingError] = useState('')
 
   const onboardingCategoriesRequest = useFetch(onboardingServices.getOnboardingCategories)
