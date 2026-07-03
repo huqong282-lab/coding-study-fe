@@ -31,6 +31,7 @@ function AppNavigator({
   handleLogin,
   handleRegister,
   handleContinueLanguageSelection: completeLanguageSelection,
+  handleSkipLanguageSelection,
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
@@ -103,6 +104,7 @@ function AppNavigator({
               categories={onboardingCategories}
               onToggleLanguage={toggleProgrammingLanguage}
               onContinue={handleContinueLanguageSelection}
+              onSkip={handleSkipLanguageSelection}
               isLoading={isOnboardingLoading}
               error={onboardingError}
             />

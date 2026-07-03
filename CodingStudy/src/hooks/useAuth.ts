@@ -14,19 +14,82 @@ import { useOnboarding } from './useOnboarding'
 
 const initialLanguage: Language = 'id'
 const initialPosition: ProgrammerPosition = 'frontend'
+const authSessionKey = 'codingstudy-auth-session'
+
+type StoredAuthSession = {
+  accessToken: string
+  user: AppUser
+  hasCompletedLanguageSelection: boolean
+  selectedProgrammingLanguages: string[]
+}
+
+function readStoredAuthSession(): StoredAuthSession | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const rawSession = window.localStorage.getItem(authSessionKey)
+  if (!rawSession) {
+    return null
+  }
+
+  try {
+    return JSON.parse(rawSession) as StoredAuthSession
+  } catch {
+    return null
+  }
+}
+
+function saveStoredAuthSession(session: StoredAuthSession) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(authSessionKey, JSON.stringify(session))
+}
+
+function clearStoredAuthSession() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.removeItem(authSessionKey)
+}
 
 export function useAuth(): AppFlowController {
+  const storedAuthSession = readStoredAuthSession()
   const [mode, setMode] = useState<AuthMode>('login')
   const [language, setLanguage] = useState<Language>(initialLanguage)
   const [programmerPosition, setProgrammerPosition] =
     useState<ProgrammerPosition>(initialPosition)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [hasCompletedLanguageSelection, setHasCompletedLanguageSelection] = useState(false)
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null)
-  const [accessToken, setAccessToken] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(storedAuthSession?.accessToken))
+  const [hasCompletedLanguageSelection, setHasCompletedLanguageSelection] = useState(
+    Boolean(storedAuthSession?.hasCompletedLanguageSelection),
+  )
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(storedAuthSession?.user ?? null)
+  const [accessToken, setAccessToken] = useState(storedAuthSession?.accessToken ?? '')
 
   const loginRequest = useFetch(authServices.login)
   const registerRequest = useFetch(authServices.register)
+
+  function persistAuthSession(
+    user: AppUser | null,
+    token: string,
+    completed: boolean,
+    selectedLanguages: string[],
+  ) {
+    if (!user || !token) {
+      return
+    }
+
+    saveStoredAuthSession({
+      accessToken: token,
+      user: { ...user, onboardingCompleted: completed },
+      hasCompletedLanguageSelection: completed,
+      selectedProgrammingLanguages: selectedLanguages,
+    })
+  }
+
   const {
     selectedProgrammingLanguages,
     onboardingCategories,
@@ -38,11 +101,14 @@ export function useAuth(): AppFlowController {
     resetOnboardingState,
   } = useOnboarding({
     accessToken,
+    initialSelectedProgrammingLanguages:
+      storedAuthSession?.selectedProgrammingLanguages ?? [],
     onCompleted: () => {
       setHasCompletedLanguageSelection(true)
       setCurrentUser((user) =>
         user ? { ...user, onboardingCompleted: true } : user,
       )
+      persistAuthSession(currentUser, accessToken, true, selectedProgrammingLanguages)
     },
   })
 
@@ -62,6 +128,12 @@ export function useAuth(): AppFlowController {
     setAccessToken(result.accessToken)
     setIsAuthenticated(true)
     setHasCompletedLanguageSelection(Boolean(result.user.onboardingCompleted))
+    persistAuthSession(
+      result.user,
+      result.accessToken,
+      Boolean(result.user.onboardingCompleted),
+      result.user.onboardingCompleted ? storedAuthSession?.selectedProgrammingLanguages ?? [] : [],
+    )
   }
 
   async function handleRegister(user: RegisterCredentials) {
@@ -76,6 +148,12 @@ export function useAuth(): AppFlowController {
     setMode('login')
   }
 
+  function handleSkipLanguageSelection() {
+    setHasCompletedLanguageSelection(true)
+    setCurrentUser((user) => (user ? { ...user, onboardingCompleted: true } : user))
+    persistAuthSession(currentUser, accessToken, true, selectedProgrammingLanguages)
+  }
+
   function handleLogout() {
     setIsAuthenticated(false)
     setAccessToken('')
@@ -85,6 +163,7 @@ export function useAuth(): AppFlowController {
     loginRequest.reset()
     registerRequest.reset()
     resetOnboardingState()
+    clearStoredAuthSession()
   }
 
   return {
@@ -109,6 +188,7 @@ export function useAuth(): AppFlowController {
     handleLogin,
     handleRegister,
     handleContinueLanguageSelection,
+    handleSkipLanguageSelection,
     handleLogout,
   }
 }

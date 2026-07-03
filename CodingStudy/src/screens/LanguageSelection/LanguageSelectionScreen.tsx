@@ -12,6 +12,7 @@ type LanguageSelectionScreenProps = {
   categories: OnboardingCategory[]
   onToggleLanguage: (languageId: string) => void
   onContinue: () => Promise<boolean>
+  onSkip: () => void
   isLoading?: boolean
   error?: string
 }
@@ -53,6 +54,7 @@ function LanguageSelectionScreen({
   categories,
   onToggleLanguage,
   onContinue,
+  onSkip,
   isLoading = false,
   error = '',
 }: LanguageSelectionScreenProps) {
@@ -148,6 +150,14 @@ function LanguageSelectionScreen({
             className={`onboarding-footer__continue ${hasSelection && !isLoading ? 'is-active' : ''}`}
           >
             {isLoading ? 'Menyimpan...' : text.continue}
+          </button>
+
+          <button
+            type="button"
+            onClick={onSkip}
+            className="onboarding-footer__skip"
+          >
+            {text.skip}
           </button>
         </footer>
       </section>
