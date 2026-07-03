@@ -20,6 +20,7 @@ const categoryMeta: Record<string, Pick<LanguageOption, 'icon' | 'tag' | 'tone'>
   javascript: { icon: 'JS', tag: 'Terpopuler', tone: 'amber' },
   typescript: { icon: 'TS', tag: 'Pro', tone: 'blue' },
   python: { icon: 'PY', tag: 'Mudah dipelajari', tone: 'cyan' },
+  php: { icon: 'PHP', tag: 'Web Legacy', tone: 'amber' },
   go: { icon: 'GO', tag: 'Pro', tone: 'sky' },
   java: { icon: 'JV', tag: 'Enterprise', tone: 'amber' },
   kotlin: { icon: 'KT', tag: 'Pro', tone: 'violet' },

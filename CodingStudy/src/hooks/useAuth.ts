@@ -33,6 +33,7 @@ export function useAuth(): AppFlowController {
     isOnboardingLoading,
     onboardingError,
     toggleProgrammingLanguage,
+    setSelectedProgrammingLanguages,
     handleContinueLanguageSelection,
     resetOnboardingState,
   } = useOnboarding({
@@ -104,6 +105,7 @@ export function useAuth(): AppFlowController {
     setLanguage,
     setProgrammerPosition,
     toggleProgrammingLanguage,
+    setSelectedProgrammingLanguages,
     handleLogin,
     handleRegister,
     handleContinueLanguageSelection,

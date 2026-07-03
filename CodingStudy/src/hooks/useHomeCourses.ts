@@ -6,6 +6,7 @@ import type { ProgrammerPosition } from '../types/user'
 const languageLabels: Record<string, string> = {
   javascript: 'JavaScript',
   python: 'Python',
+  php: 'PHP',
   typescript: 'TypeScript',
   java: 'Java',
   go: 'Go',
@@ -16,10 +17,10 @@ const languageLabels: Record<string, string> = {
 
 const positionLanguageMap: Record<ProgrammerPosition, string[]> = {
   frontend: ['javascript', 'typescript'],
-  backend: ['javascript', 'python', 'go', 'sql'],
-  fullstack: ['javascript', 'typescript', 'python', 'sql'],
+  backend: ['javascript', 'python', 'php', 'go', 'sql'],
+  fullstack: ['javascript', 'typescript', 'python', 'php', 'sql'],
   mobile: ['dart', 'kotlin', 'javascript'],
-  devops: ['python', 'go'],
+  devops: ['python', 'go', 'php'],
   data: ['python', 'sql', 'java'],
 }
 
