@@ -19,7 +19,7 @@ const localOnboardingCategories: OnboardingCategory[] = [
   { id: 'php', name: 'PHP', description: 'Bahasa populer untuk web development dan backend.' },
   { id: 'go', name: 'Go', description: 'Bahasa cepat untuk backend, microservices, dan cloud.' },
   { id: 'java', name: 'Java', description: 'Bahasa populer untuk enterprise dan Android.' },
-  { id: 'kotlin', name: 'Kotlin', description: 'Bahasa modern untuk Android dan backend.' },
+  { id: 'kotlin', name: 'Kotlin', description: 'Bahasa utama untuk mengembangkan aplikasi Android modern.' },
   { id: 'dart', name: 'Dart', description: 'Bahasa untuk Flutter dan aplikasi multiplatform.' },
   { id: 'sql', name: 'SQL', description: 'Bahasa query untuk mengelola database.' },
 ]
