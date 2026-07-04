@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
-import { courseCatalog } from '../../data/courses'
-import type { Course } from '../../types/product'
 import type { AppUser, Language } from '../../types/user'
+import { useCourse } from '../../hooks/useCourse'
 
 type CourseLearningScreenProps = {
   language: Language
@@ -46,10 +45,7 @@ function CourseLearningScreen({ language, user, onLogout }: CourseLearningScreen
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
-  const course = useMemo<Course | undefined>(
-    () => courseCatalog.find((item) => String(item.id) === params.courseId),
-    [params.courseId],
-  )
+  const { course, isLoading, error } = useCourse(params.courseId)
   const [activeTab, setActiveTab] = useState<'resources' | 'about' | 'rules'>('resources')
   const [activeModuleIndex, setActiveModuleIndex] = useState(0)
 
@@ -74,13 +70,27 @@ function CourseLearningScreen({ language, user, onLogout }: CourseLearningScreen
     })
   }, [course, language])
 
+  if (isLoading) {
+    return (
+      <main className="course-learning-page">
+        <Navbar user={user} onLogout={onLogout} />
+        <section className="course-learning-shell">
+          <div className="course-learning-empty">
+            <p>Memuat modul course...</p>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    )
+  }
+
   if (!course) {
     return (
       <main className="course-learning-page">
         <Navbar user={user} onLogout={onLogout} />
         <section className="course-learning-shell">
           <div className="course-learning-empty">
-            <p>{text.notFound}</p>
+            <p>{error || text.notFound}</p>
             <button className="btn btn-secondary" type="button" onClick={() => navigate('/home')}>
               {text.back}
             </button>

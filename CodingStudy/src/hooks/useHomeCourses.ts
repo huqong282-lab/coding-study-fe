@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { courseCatalog } from '../data/courses'
+import { useCourseCatalog } from './useCourseCatalog'
 import type { Course } from '../types/product'
 import type { ProgrammerPosition } from '../types/user'
 
@@ -28,6 +28,7 @@ export function useHomeCourses(
   selectedProgrammingLanguages: string[],
   programmerPosition: ProgrammerPosition,
 ) {
+  const { courses: courseCatalog, isLoading, error } = useCourseCatalog()
   const [activeTopic, setActiveTopic] = useState('all')
   const [isInterestPanelOpen, setIsInterestPanelOpen] = useState(false)
 
@@ -55,7 +56,7 @@ export function useHomeCourses(
         : matchedCourses.filter((course) => course.languageId === activeTopic)
 
     return filteredCourses.length > 0 ? filteredCourses : courseCatalog.slice(0, 3)
-  }, [activeTopic, learningLanguages])
+  }, [activeTopic, courseCatalog, learningLanguages])
 
   const featuredLanguages = learningLanguages.slice(0, 4)
   const languageOptions = Object.entries(languageLabels).map(([id, name]) => ({ id, name }))
@@ -75,11 +76,14 @@ export function useHomeCourses(
 
   return {
     activeTopic,
+    allCourses: courseCatalog,
     displayedCourses: displayedCourses as Course[],
+    error,
     featuredLanguages,
     languageOptions,
     isInterestPanelOpen,
     learningLanguages,
+    isLoading,
     getLanguageLabel,
     openAllTopic,
     selectTopic,

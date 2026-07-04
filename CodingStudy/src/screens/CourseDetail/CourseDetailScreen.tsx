@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
-import { courseCatalog } from '../../data/courses'
-import type { Course } from '../../types/product'
 import type { AppUser, Language } from '../../types/user'
+import { useCourse } from '../../hooks/useCourse'
 import CourseDetailHero from './components/CourseDetailHero'
 import CourseDetailListPanel from './components/CourseDetailListPanel'
 import CourseDetailStats from './components/CourseDetailStats'
@@ -62,32 +60,26 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
+  const { course, isLoading, error } = useCourse(params.courseId)
 
-  const course = useMemo<Course | undefined>(
-    () => courseCatalog.find((item) => String(item.id) === params.courseId),
-    [params.courseId],
-  )
-
-  const lessonPreview = useMemo(
-    () =>
-      course?.syllabus.slice(0, 5).map((lesson, index) => {
-        const isPreviewFree = course.access === 'free' || index < 2
-
-        return {
-          title: lesson,
-          duration: `${Math.max(3, 5 - Math.min(index, 2))} ${language === 'id' ? 'menit' : 'mins'}`,
-          accessLabel: isPreviewFree ? text.free : text.premium,
-        }
-      }) ?? [],
-    [course, language, text.free, text.premium],
-  )
+  if (isLoading) {
+    return (
+      <main className="course-detail-page">
+        <Navbar user={user} onLogout={onLogout} />
+        <section className="course-detail-card">
+          <p>Memuat detail course...</p>
+        </section>
+        <Footer />
+      </main>
+    )
+  }
 
   if (!course) {
     return (
       <main className="course-detail-page">
         <Navbar user={user} onLogout={onLogout} />
         <section className="course-detail-card">
-          <p>{text.notFound}</p>
+          <p>{error || text.notFound}</p>
           <button className="btn btn-secondary" type="button" onClick={() => navigate('/home')}>
             {text.back}
           </button>
@@ -96,6 +88,16 @@ function CourseDetailScreen({ language, user, onLogout }: CourseDetailScreenProp
       </main>
     )
   }
+
+  const lessonPreview = course.syllabus.slice(0, 5).map((lesson, index) => {
+    const isPreviewFree = course.access === 'free' || index < 2
+
+    return {
+      title: lesson,
+      duration: `${Math.max(3, 5 - Math.min(index, 2))} ${language === 'id' ? 'menit' : 'mins'}`,
+      accessLabel: isPreviewFree ? text.free : text.premium,
+    }
+  })
 
   const totalMinutes = course.modules * 3
   const isFree = course.access === 'free'
