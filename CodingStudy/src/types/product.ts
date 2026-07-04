@@ -1,5 +1,5 @@
 export type Course = {
-  id: number
+  id: string | number
   languageId: string
   languageName: string
   title: string

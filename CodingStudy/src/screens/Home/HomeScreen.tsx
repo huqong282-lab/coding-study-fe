@@ -28,10 +28,13 @@ function HomeScreen({
 }: HomeScreenProps) {
   const {
     activeTopic,
+    allCourses,
     displayedCourses,
+    error,
     languageOptions,
     isInterestPanelOpen,
     learningLanguages,
+    isLoading,
     getLanguageLabel,
     openAllTopic,
     selectTopic,
@@ -116,6 +119,8 @@ function HomeScreen({
       <section className="home-content" id="classes">
         <CourseShowcase
           courses={displayedCourses}
+          isLoading={isLoading}
+          error={error}
           onOpenCourse={handleOpenCourse}
           activeTopic={activeTopic}
           learningLanguages={learningLanguages}
@@ -127,7 +132,7 @@ function HomeScreen({
           onShowInterestPanel={showInterestPanel}
           getLanguageLabel={getLanguageLabel}
         />
-        <LanguageTracks />
+        <LanguageTracks courses={allCourses} />
         <BrandPartners />
         <Testimonials />
         <FaqSection />
