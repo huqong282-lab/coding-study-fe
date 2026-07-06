@@ -45,6 +45,9 @@ export type AppFlowState = {
   selectedProgrammingLanguages: string[]
   currentUser: AppUser | null
   accessToken: string
+  onboardingCategories: OnboardingCategory[]
+  isOnboardingLoading: boolean
+  onboardingError: string
   authError: string
   isAuthLoading: boolean
 }
@@ -54,9 +57,11 @@ export type AppFlowActions = {
   setLanguage: (language: Language) => void
   setProgrammerPosition: (position: ProgrammerPosition) => void
   toggleProgrammingLanguage: (languageId: string) => void
+  setSelectedProgrammingLanguages: (languageIds: string[]) => void
   handleLogin: (credentials: AuthCredentials) => Promise<void>
   handleRegister: (user: RegisterCredentials) => Promise<void>
-  handleContinueLanguageSelection: () => void
+  handleContinueLanguageSelection: () => Promise<boolean>
+  handleSkipLanguageSelection: () => void
   handleLogout: () => void
 }
 

@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
-import { courseCatalog } from '../../data/courses'
-import type { Course } from '../../types/product'
 import type { AppUser, Language } from '../../types/user'
+import { useCourse } from '../../hooks/useCourse'
 
 type CourseCheckoutScreenProps = {
   language: Language
@@ -92,11 +90,21 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
+  const { course, isLoading, error } = useCourse(params.courseId)
 
-  const course = useMemo<Course | undefined>(
-    () => courseCatalog.find((item) => String(item.id) === params.courseId),
-    [params.courseId],
-  )
+  if (isLoading) {
+    return (
+      <main className="course-checkout-page">
+        <Navbar user={user} onLogout={onLogout} variant="checkout" />
+        <section className="course-checkout-shell">
+          <div className="course-checkout-card">
+            <p>Memuat halaman checkout...</p>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    )
+  }
 
   if (!course) {
     return (
@@ -104,7 +112,7 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
         <Navbar user={user} onLogout={onLogout} variant="checkout" />
         <section className="course-checkout-shell">
           <div className="course-checkout-card">
-            <p>{text.notFound}</p>
+            <p>{error || text.notFound}</p>
             <button className="btn btn-secondary" type="button" onClick={() => navigate('/home')}>
               {text.back}
             </button>

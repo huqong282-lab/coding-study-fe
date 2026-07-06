@@ -20,6 +20,9 @@ function AppNavigator({
   hasCompletedLanguageSelection,
   selectedProgrammingLanguages,
   currentUser,
+  onboardingCategories,
+  isOnboardingLoading,
+  onboardingError,
   authError,
   isAuthLoading,
   setMode,
@@ -29,6 +32,7 @@ function AppNavigator({
   handleLogin,
   handleRegister,
   handleContinueLanguageSelection: completeLanguageSelection,
+  handleSkipLanguageSelection,
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
@@ -39,9 +43,12 @@ function AppNavigator({
     navigate(`/courses/${course.id}`)
   }
 
-  function handleContinueLanguageSelection() {
-    completeLanguageSelection()
-    navigate('/home')
+  async function handleContinueLanguageSelection() {
+    const completed = await completeLanguageSelection()
+    if (completed) {
+      navigate('/home')
+    }
+    return completed
   }
 
   return (
@@ -95,8 +102,12 @@ function AppNavigator({
             <LanguageSelectionScreen
               language={language}
               selectedLanguages={selectedProgrammingLanguages}
+              categories={onboardingCategories}
               onToggleLanguage={toggleProgrammingLanguage}
               onContinue={handleContinueLanguageSelection}
+              onSkip={handleSkipLanguageSelection}
+              isLoading={isOnboardingLoading}
+              error={onboardingError}
             />
           ) : (
             <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
