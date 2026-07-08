@@ -2,8 +2,6 @@ export type Language = 'id' | 'en'
 
 export type AuthMode = 'login' | 'register'
 
-export type AppRole = 'student' | 'mentor'
-
 export type ProgrammerPosition =
   | 'frontend'
   | 'backend'
@@ -16,13 +14,12 @@ export type AppUser = {
   id: number
   name: string
   email: string
-  role?: AppRole
+  role?: string
 }
 
 export type AuthCredentials = {
   email: string
   password: string
-  role: AppRole
 }
 
 export type RegisterCredentials = {
