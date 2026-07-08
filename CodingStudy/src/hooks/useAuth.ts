@@ -124,10 +124,7 @@ export function useAuth(): AppFlowController {
       return
     }
 
-    setCurrentUser({
-      ...result.user,
-      role: credentials.role,
-    })
+    setCurrentUser(result.user)
     setAccessToken(result.accessToken)
     setIsAuthenticated(true)
     setHasCompletedLanguageSelection(Boolean(result.user.onboardingCompleted))

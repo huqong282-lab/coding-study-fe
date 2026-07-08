@@ -36,8 +36,14 @@ function AppNavigator({
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
-  const shouldCompleteLanguageSelection = isAuthenticated && !hasCompletedLanguageSelection
-  const postAuthRedirectPath = shouldCompleteLanguageSelection ? '/language-selection' : '/home'
+  const isMentor = currentUser?.role?.toLowerCase() === 'mentor'
+  const shouldCompleteLanguageSelection =
+    isAuthenticated && !isMentor && !hasCompletedLanguageSelection
+  const postAuthRedirectPath = isMentor
+    ? '/dashboard'
+    : shouldCompleteLanguageSelection
+      ? '/language-selection'
+      : '/home'
 
   function handleOpenCourse(course: Course) {
     navigate(`/courses/${course.id}`)
@@ -110,14 +116,16 @@ function AppNavigator({
               error={onboardingError}
             />
           ) : (
-            <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
+            <Navigate to={isAuthenticated ? postAuthRedirectPath : '/login'} replace />
           )
         }
       />
       <Route
         path="/home"
         element={
-          shouldCompleteLanguageSelection ? (
+          isMentor ? (
+            <Navigate to="/dashboard" replace />
+          ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
             <HomeScreen
@@ -134,9 +142,11 @@ function AppNavigator({
       <Route
         path="/dashboard"
         element={
-          shouldCompleteLanguageSelection ? (
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
-          ) : currentUser?.role === 'mentor' ? (
+          ) : isMentor ? (
             <DashboardMentor user={currentUser} onLogout={handleLogout} />
           ) : (
             <DashboardStudent
