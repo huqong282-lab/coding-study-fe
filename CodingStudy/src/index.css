@@ -3098,6 +3098,336 @@
       0 20px 60px rgba(8, 6, 22, 0.22);
   }
 
+  .mentor-dashboard-empty-grid {
+    position: relative;
+  }
+
+  .mentor-dashboard-empty-content {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 0.85rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .mentor-dashboard-empty-content strong {
+    color: #f7f5ff;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    font-weight: 950;
+  }
+
+  .mentor-dashboard-empty-content span {
+    max-width: 40rem;
+    color: #9ca3bf;
+    line-height: 1.7;
+  }
+
+  .mentor-dashboard-empty-content button {
+    border: 1px solid rgba(143, 107, 255, 0.35);
+    border-radius: 14px;
+    padding: 0.8rem 1.1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #7c5cff, #5f82ff);
+    font-weight: 800;
+    box-shadow: 0 16px 36px rgba(124, 92, 255, 0.22);
+  }
+
+  .mentor-dashboard-course-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mentor-dashboard-course-card {
+    display: grid;
+    gap: 0.95rem;
+    border: 1px solid rgba(140, 126, 255, 0.12);
+    border-radius: 22px;
+    padding: 1rem;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(124, 92, 255, 0.16), transparent 28%),
+      rgba(255, 255, 255, 0.03);
+  }
+
+  .mentor-dashboard-course-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .mentor-dashboard-course-card__head p {
+    margin: 0;
+    color: #8f6bff;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mentor-dashboard-course-card__head h3 {
+    margin: 0.3rem 0 0;
+    color: #f7f5ff;
+    font-size: 1.25rem;
+    font-weight: 950;
+  }
+
+  .mentor-dashboard-course-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.8rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mentor-dashboard-course-badge.is-draft {
+    color: #ffcf81;
+    background: rgba(255, 199, 105, 0.12);
+  }
+
+  .mentor-dashboard-course-badge.is-published {
+    color: #39f0a8;
+    background: rgba(57, 240, 168, 0.12);
+  }
+
+  .mentor-dashboard-course-description {
+    margin: 0;
+    color: #a0a6c3;
+    line-height: 1.75;
+  }
+
+  .mentor-dashboard-course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    color: #8f94af;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .mentor-dashboard-course-meta span {
+    padding: 0.38rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .mentor-dashboard-course-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .mentor-dashboard-course-footer small {
+    color: #858ba7;
+    line-height: 1.5;
+  }
+
+  .mentor-dashboard-course-footer button {
+    border: 1px solid rgba(143, 107, 255, 0.28);
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    color: #fff;
+    background: rgba(124, 92, 255, 0.16);
+    font-weight: 800;
+  }
+
+  .mentor-class-form-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(124, 92, 255, 0.16), transparent 25%),
+      radial-gradient(circle at top right, rgba(70, 183, 255, 0.12), transparent 24%),
+      linear-gradient(180deg, #070816 0%, #090a18 100%);
+  }
+
+  .mentor-class-form-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.25rem clamp(1rem, 3vw, 2rem) 3rem;
+  }
+
+  .mentor-class-form-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .mentor-class-form-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    padding: 0.6rem 0.9rem;
+    color: #a9adc3;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .mentor-class-form-layout {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    margin-top: 1rem;
+  }
+
+  .mentor-class-form-card,
+  .mentor-class-form-aside {
+    border: 1px solid rgba(140, 126, 255, 0.12);
+    border-radius: 24px;
+    background: rgba(18, 16, 39, 0.98);
+    box-shadow: 0 24px 70px rgba(8, 6, 22, 0.22);
+  }
+
+  .mentor-class-form-card {
+    padding: 1.2rem;
+  }
+
+  .mentor-class-form-kicker,
+  .mentor-class-form-card p {
+    margin: 0;
+    color: #8f6bff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mentor-class-form-card h1 {
+    margin: 0.4rem 0 0;
+    color: #f7f5ff;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .mentor-class-form-card > span {
+    display: block;
+    margin-top: 0.7rem;
+    color: #a0a6c3;
+    line-height: 1.7;
+  }
+
+  .mentor-class-form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .mentor-class-form-grid {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mentor-class-form-field {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .mentor-class-form-field span {
+    color: #d9daf2;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .mentor-class-form-field input,
+  .mentor-class-form-field textarea,
+  .mentor-class-form-field select {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    color: #f7f5ff;
+    background: rgba(255, 255, 255, 0.04);
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .mentor-class-form-field textarea {
+    resize: vertical;
+    min-height: 9rem;
+  }
+
+  .mentor-class-form-field input::placeholder,
+  .mentor-class-form-field textarea::placeholder {
+    color: #7f849e;
+  }
+
+  .mentor-class-form-field input:focus,
+  .mentor-class-form-field textarea:focus,
+  .mentor-class-form-field select:focus {
+    border-color: rgba(143, 107, 255, 0.72);
+    box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.12);
+  }
+
+  .mentor-class-form-error {
+    border: 1px solid rgba(255, 106, 138, 0.18);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+    color: #ffb6c7;
+    background: rgba(255, 106, 138, 0.08);
+    font-weight: 700;
+  }
+
+  .mentor-class-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.8rem;
+  }
+
+  .mentor-class-form-aside {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+    padding: 1.2rem;
+  }
+
+  .mentor-class-form-note,
+  .mentor-class-form-preview {
+    display: grid;
+    gap: 0.55rem;
+    border-radius: 20px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .mentor-class-form-note p,
+  .mentor-class-form-preview p {
+    margin: 0;
+    color: #8f6bff;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mentor-class-form-note strong,
+  .mentor-class-form-preview strong {
+    color: #f7f5ff;
+    font-size: 1.18rem;
+    font-weight: 950;
+    line-height: 1.25;
+  }
+
+  .mentor-class-form-note span,
+  .mentor-class-form-preview span {
+    color: #9ca3bf;
+    line-height: 1.7;
+  }
+
   .mentor-dashboard-panel {
     border: 1px solid rgba(140, 126, 255, 0.12);
     border-radius: 24px;
@@ -4211,6 +4541,14 @@
       justify-content: flex-start;
     }
 
+    .mentor-dashboard-course-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mentor-class-form-layout {
+      grid-template-columns: 1fr;
+    }
+
     .student-dashboard-certificate-grid {
       grid-template-columns: 1fr;
     }
@@ -4238,6 +4576,12 @@
       padding: 0.5rem;
     }
 
+    .mentor-dashboard-course-card__head,
+    .mentor-dashboard-course-footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
     .mentor-dashboard-schedule-item,
     .mentor-dashboard-material-list article {
       grid-template-columns: 1fr;
@@ -4251,6 +4595,19 @@
 
     .student-dashboard-achievement-grid {
       grid-template-columns: 1fr 1fr;
+    }
+
+    .mentor-dashboard-summary-grid,
+    .mentor-class-form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mentor-class-form-actions {
+      justify-content: stretch;
+    }
+
+    .mentor-class-form-actions .btn {
+      flex: 1;
     }
   }
 }

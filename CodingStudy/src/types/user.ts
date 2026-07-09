@@ -31,6 +31,7 @@ export type RegisterCredentials = {
 export type AuthSession = {
   user: AppUser
   accessToken: string
+  refreshToken: string
 }
 
 export type AppFlowState = {
