@@ -33,6 +33,14 @@ export type CourseListQuery = {
   limit?: number
 }
 
+export type CreateCoursePayload = {
+  title: string
+  description: string
+  price: number
+  thumbnailUrl?: string
+  status?: 'DRAFT' | 'PUBLISHED'
+}
+
 function buildQueryString(query?: CourseListQuery) {
   if (!query) {
     return ''
@@ -67,6 +75,20 @@ export async function getCourseById(courseId: string) {
 
   if (!response.data) {
     throw new Error('Course response is missing data')
+  }
+
+  return response.data
+}
+
+export async function createCourse(payload: CreateCoursePayload, token: string) {
+  const response = await apiFetch<BackendCourse>('/courses', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    token,
+  })
+
+  if (!response.data) {
+    throw new Error('Create course response is missing data')
   }
 
   return response.data

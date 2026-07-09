@@ -31,3 +31,16 @@ export async function register(payload: RegisterPayload) {
 
   return response.data
 }
+
+export async function refreshAccessToken(refreshToken: string) {
+  const response = await apiFetch<{ accessToken: string }>('/auth/refresh-token', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+  })
+
+  if (!response.data) {
+    throw new Error('Refresh token response is missing data')
+  }
+
+  return response.data
+}

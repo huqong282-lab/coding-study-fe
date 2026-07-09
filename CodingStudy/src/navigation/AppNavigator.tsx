@@ -4,6 +4,7 @@ import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
+import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
@@ -20,6 +21,7 @@ function AppNavigator({
   hasCompletedLanguageSelection,
   selectedProgrammingLanguages,
   currentUser,
+  accessToken,
   onboardingCategories,
   isOnboardingLoading,
   onboardingError,
@@ -38,9 +40,9 @@ function AppNavigator({
   const navigate = useNavigate()
   const isMentor = currentUser?.role?.toLowerCase() === 'mentor'
   const shouldCompleteLanguageSelection =
-    isAuthenticated && !isMentor && !hasCompletedLanguageSelection
-  const postAuthRedirectPath = isMentor
-    ? '/dashboard'
+    isAuthenticated && !hasCompletedLanguageSelection
+  const postAuthRedirectPath = !isAuthenticated
+    ? '/login'
     : shouldCompleteLanguageSelection
       ? '/language-selection'
       : '/home'
@@ -123,8 +125,8 @@ function AppNavigator({
       <Route
         path="/home"
         element={
-          isMentor ? (
-            <Navigate to="/dashboard" replace />
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
           ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
@@ -154,6 +156,25 @@ function AppNavigator({
               selectedProgrammingLanguages={selectedProgrammingLanguages}
               onLogout={handleLogout}
             />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/classes/new"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : isMentor ? (
+            <MentorClassCreateScreen
+              language={language}
+              user={currentUser}
+              accessToken={accessToken}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate to="/dashboard" replace />
           )
         }
       />
