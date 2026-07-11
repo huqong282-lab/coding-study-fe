@@ -10,15 +10,19 @@ type NavbarProps = {
 }
 
 const navItems = [
-  { label: 'Kelas', href: '#classes' },
+  { label: 'Kelas', to: '/classes' },
   { label: 'Komunitas', href: '#community' },
-  { label: 'Roadmap', href: '#tech' },
+  { label: 'Alur Belajar', href: '#tech' },
+  { label: 'Job Portal', href: '#footer' },
   { label: 'Tentang Kami', href: '#footer' },
 ]
 
 function Navbar({ user, onLogout, variant = 'default', title = 'Profil & Dashboard' }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isClassMenuOpen] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
+  const classMenuRef = useRef<HTMLDivElement>(null)
+  const setIsClassMenuOpen = (_value: unknown) => undefined
   const firstName = user?.name.trim().split(' ')[0] || 'Learner'
   const avatarInitial = firstName.charAt(0).toUpperCase()
 
@@ -175,11 +179,63 @@ function Navbar({ user, onLogout, variant = 'default', title = 'Profil & Dashboa
       </Link>
 
       <nav className="home-nav-links" aria-label="Learning navigation">
-        {navItems.map((item) => (
-          <a key={item.label} href={item.href}>
-            {item.label}
-          </a>
-        ))}
+        <div
+          className="classes-menu"
+          ref={classMenuRef}
+          onMouseEnter={() => setIsClassMenuOpen(true)}
+          onMouseLeave={() => setIsClassMenuOpen(false)}
+        >
+          <button
+            className="classes-menu__trigger"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isClassMenuOpen}
+            onClick={() => {
+              window.location.href = '/classes'
+            }}
+          >
+            Kelas
+            <span aria-hidden="true">⌄</span>
+          </button>
+
+          {isClassMenuOpen && (
+            <div className="classes-mega-menu" role="menu" aria-label="Kategori kelas">
+              <aside className="classes-mega-menu__feature">
+                <span>Trusted by 12K+ Students</span>
+                <strong>Build Your Future Career</strong>
+                <p>Explore kelas gratis dan berbayar bersama mentor expert.</p>
+                <a href="#classes" onClick={() => setIsClassMenuOpen(false)}>
+                  All Courses
+                </a>
+              </aside>
+
+              <div className="classes-mega-menu__grid">
+                {careerTracks.map((track) => (
+                  <a key={track.id} href="#classes" role="menuitem" onClick={() => setIsClassMenuOpen(false)}>
+                    <strong>{track.name}</strong>
+                    <small>{track.summary}</small>
+                  </a>
+                ))}
+              </div>
+
+              <a className="classes-mega-menu__cta" href="#classes" onClick={() => setIsClassMenuOpen(false)}>
+                Lihat Semua Kelas
+              </a>
+            </div>
+          )}
+        </div>
+
+        {navItems.map((item) =>
+          'to' in item ? (
+            <Link key={item.label} to={item.to}>
+              {item.label}
+            </Link>
+          ) : (
+            <a key={item.label} href={item.href}>
+              {item.label}
+            </a>
+          ),
+        )}
       </nav>
 
       <div className="home-nav-actions">

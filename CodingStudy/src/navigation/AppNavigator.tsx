@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CourseDetailScreen from '../screens/CourseDetail/CourseDetailScreen'
 import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen'
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
+import ClassesScreen from '../screens/Classes/ClassesFilterScreen'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import HomeScreen from '../screens/Home/HomeScreen'
@@ -20,6 +21,9 @@ function AppNavigator({
   hasCompletedLanguageSelection,
   selectedProgrammingLanguages,
   currentUser,
+  onboardingCategories,
+  isOnboardingLoading,
+  onboardingError,
   authError,
   isAuthLoading,
   setMode,
@@ -29,6 +33,7 @@ function AppNavigator({
   handleLogin,
   handleRegister,
   handleContinueLanguageSelection: completeLanguageSelection,
+  handleSkipLanguageSelection,
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
@@ -39,9 +44,12 @@ function AppNavigator({
     navigate(`/courses/${course.id}`)
   }
 
-  function handleContinueLanguageSelection() {
-    completeLanguageSelection()
-    navigate('/home')
+  async function handleContinueLanguageSelection() {
+    const completed = await completeLanguageSelection()
+    if (completed) {
+      navigate('/home')
+    }
+    return completed
   }
 
   return (
@@ -95,8 +103,12 @@ function AppNavigator({
             <LanguageSelectionScreen
               language={language}
               selectedLanguages={selectedProgrammingLanguages}
+              categories={onboardingCategories}
               onToggleLanguage={toggleProgrammingLanguage}
               onContinue={handleContinueLanguageSelection}
+              onSkip={handleSkipLanguageSelection}
+              isLoading={isOnboardingLoading}
+              error={onboardingError}
             />
           ) : (
             <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
@@ -133,6 +145,16 @@ function AppNavigator({
               selectedProgrammingLanguages={selectedProgrammingLanguages}
               onLogout={handleLogout}
             />
+          )
+        }
+      />
+      <Route
+        path="/classes"
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <ClassesScreen user={currentUser} onLogout={handleLogout} onOpenCourse={handleOpenCourse} />
           )
         }
       />

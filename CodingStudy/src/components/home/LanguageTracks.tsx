@@ -1,4 +1,4 @@
-import { courseCatalog } from '../../data/courses'
+import type { Course } from '../../types/product'
 
 const languageTracks = [
   { name: 'React', label: 'Frontend', icon: '⚛', color: '#8b6dff', ids: ['javascript', 'typescript'] },
@@ -15,15 +15,19 @@ const languageTracks = [
   { name: 'AI / ML', label: 'Machine Learning', icon: '⌬', color: '#22d3ee', ids: ['python', 'sql'] },
 ]
 
-function getClassCount(ids: string[]) {
+type LanguageTracksProps = {
+  courses: Course[]
+}
+
+function getClassCount(courses: Course[], ids: string[]) {
   if (ids.length === 0) {
     return 3
   }
 
-  return courseCatalog.filter((course) => ids.includes(course.languageId)).length
+  return courses.filter((course) => ids.includes(course.languageId)).length
 }
 
-function LanguageTracks() {
+function LanguageTracks({ courses }: LanguageTracksProps) {
   return (
     <section className="home-section home-section--languages" id="tech" aria-labelledby="language-title">
       <div className="home-section__header home-section__header--stacked">
@@ -40,7 +44,7 @@ function LanguageTracks() {
               {track.icon}
             </span>
             <strong>{track.name}</strong>
-            <p>{getClassCount(track.ids)} kelas</p>
+            <p>{getClassCount(courses, track.ids)} kelas</p>
             <small>{track.label}</small>
           </article>
         ))}

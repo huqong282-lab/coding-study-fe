@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
-import { courseCatalog } from '../../data/courses'
 import type { Course } from '../../types/product'
 import type { AppUser } from '../../types/user'
+import { useCourseCatalog } from '../../hooks/useCourseCatalog'
 
 type DashboardStudentProps = {
   user?: AppUser | null
@@ -84,12 +84,12 @@ const certificateItems = [
   { title: 'Python Fundamental', date: 'Diterbitkan 10 Mar 2026', icon: 'Py' },
 ]
 
-function buildEnrolledCourses(selectedLanguages: string[]): EnrolledCourse[] {
+function buildEnrolledCourses(courses: Course[], selectedLanguages: string[]): EnrolledCourse[] {
   if (selectedLanguages.length === 0) {
     return []
   }
 
-  return courseCatalog
+  return courses
     .filter((course) => selectedLanguages.includes(course.languageId))
     .slice(0, 4)
     .map((course, index) => {
@@ -114,9 +114,10 @@ function DashboardStudent({
   const tabParam = searchParams.get('tab')
   const activeView: DashboardView = tabParam === 'courses' ? 'courses' : 'overview'
   const [activeFilter, setActiveFilter] = useState<CourseFilter>('all')
+  const { courses: courseCatalog, isLoading, error } = useCourseCatalog()
   const enrolledCourses = useMemo(
-    () => buildEnrolledCourses(selectedProgrammingLanguages),
-    [selectedProgrammingLanguages],
+    () => buildEnrolledCourses(courseCatalog, selectedProgrammingLanguages),
+    [courseCatalog, selectedProgrammingLanguages],
   )
 
   const visibleCourses = enrolledCourses.filter((course) => {
@@ -154,6 +155,46 @@ function DashboardStudent({
         .slice(0, 2)
         .toUpperCase()
     : 'RH'
+
+  const coursesPanelContent = isLoading ? (
+    <div className="student-empty-state">
+      <strong>Memuat course dari backend</strong>
+      <p>Dashboard sedang menarik data course terbaru.</p>
+    </div>
+  ) : error ? (
+    <div className="student-empty-state">
+      <strong>Gagal memuat course</strong>
+      <p>{error}</p>
+    </div>
+  ) : visibleCourses.length > 0 ? (
+    <div className="student-course-list">
+      {visibleCourses.map((course) => (
+        <article className="student-course-card" key={course.id}>
+          <div className="student-course-card__header">
+            <span className="course-tag">{course.access === 'paid' ? 'Premium' : 'Free'}</span>
+            <strong>{course.progress}%</strong>
+          </div>
+          <h3>{course.title}</h3>
+          <p>{course.description}</p>
+          <div className="student-course-meta">
+            <span>
+              {course.lessonsFinished}/{course.modules} lessons
+            </span>
+            <span>{course.learningMinutes} menit</span>
+            <span>{course.progress === 100 ? 'Finished' : 'Started'}</span>
+          </div>
+          <div className="student-progress-track" aria-label={`${course.progress}% progress`}>
+            <span style={{ width: `${course.progress}%` }} />
+          </div>
+        </article>
+      ))}
+    </div>
+  ) : (
+    <div className="student-empty-state">
+      <strong>Kamu belum mengikuti kelas</strong>
+      <p>Pilih kelas dari halaman Library dulu, nanti kelas yang kamu ikuti akan muncul di sini.</p>
+    </div>
+  )
 
   return (
     <main className="student-dashboard-page">
@@ -388,35 +429,7 @@ function DashboardStudent({
                 ))}
               </div>
 
-              {visibleCourses.length > 0 ? (
-                <div className="student-course-list">
-                  {visibleCourses.map((course) => (
-                    <article className="student-course-card" key={course.id}>
-                      <div className="student-course-card__header">
-                        <span className="course-tag">{course.access === 'paid' ? 'Premium' : 'Free'}</span>
-                        <strong>{course.progress}%</strong>
-                      </div>
-                      <h3>{course.title}</h3>
-                      <p>{course.description}</p>
-                      <div className="student-course-meta">
-                        <span>
-                          {course.lessonsFinished}/{course.modules} lessons
-                        </span>
-                        <span>{course.learningMinutes} menit</span>
-                        <span>{course.progress === 100 ? 'Finished' : 'Started'}</span>
-                      </div>
-                      <div className="student-progress-track" aria-label={`${course.progress}% progress`}>
-                        <span style={{ width: `${course.progress}%` }} />
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="student-empty-state">
-                  <strong>Kamu belum mengikuti kelas</strong>
-                  <p>Pilih kelas dari halaman Library dulu, nanti kelas yang kamu ikuti akan muncul di sini.</p>
-                </div>
-              )}
+              {coursesPanelContent}
             </section>
           )}
         </div>

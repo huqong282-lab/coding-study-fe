@@ -1,9 +1,6 @@
-import type { Language } from '../../types/user'
+import type { Language, OnboardingCategory } from '../../types/user'
 
-type LanguageOption = {
-  id: string
-  name: string
-  description: string
+type LanguageOption = OnboardingCategory & {
   icon: string
   tag: string
   tone: string
@@ -12,20 +9,25 @@ type LanguageOption = {
 type LanguageSelectionScreenProps = {
   language?: Language
   selectedLanguages: string[]
+  categories: OnboardingCategory[]
   onToggleLanguage: (languageId: string) => void
-  onContinue: () => void
+  onContinue: () => Promise<boolean>
+  onSkip: () => void
+  isLoading?: boolean
+  error?: string
 }
 
-const programmingLanguageOptions: LanguageOption[] = [
-  { id: 'javascript', name: 'JavaScript', description: 'Bahasa utama untuk web', icon: 'JS', tag: 'Terpopuler', tone: 'amber' },
-  { id: 'python', name: 'Python', description: 'Data, AI, dan scripting', icon: 'PY', tag: 'Mudah dipelajari', tone: 'cyan' },
-  { id: 'typescript', name: 'TypeScript', description: 'JS dengan tipe data kuat', icon: 'TS', tag: 'Pro', tone: 'blue' },
-  { id: 'php', name: 'PHP / Laravel', description: 'Backend web paling luas', icon: 'PHP', tag: 'Terpopuler', tone: 'purple' },
-  { id: 'kotlin', name: 'Kotlin', description: 'Android native & backend', icon: 'KT', tag: 'Pro', tone: 'violet' },
-  { id: 'go', name: 'Golang', description: 'Performa tinggi, backend', icon: 'GO', tag: 'Pro', tone: 'sky' },
-  { id: 'flutter', name: 'Flutter', description: 'Aplikasi iOS dan Android', icon: 'FL', tag: 'Mudah dipelajari', tone: 'teal' },
-  { id: 'sql', name: 'SQL', description: 'Query dan kelola database', icon: 'DB', tag: 'Mudah dipelajari', tone: 'emerald' },
-]
+const categoryMeta: Record<string, Pick<LanguageOption, 'icon' | 'tag' | 'tone'>> = {
+  javascript: { icon: 'JS', tag: 'Terpopuler', tone: 'amber' },
+  typescript: { icon: 'TS', tag: 'Pro', tone: 'blue' },
+  python: { icon: 'PY', tag: 'Mudah dipelajari', tone: 'cyan' },
+  php: { icon: 'PHP', tag: 'Web Legacy', tone: 'amber' },
+  go: { icon: 'GO', tag: 'Pro', tone: 'sky' },
+  java: { icon: 'JV', tag: 'Enterprise', tone: 'amber' },
+  kotlin: { icon: 'KT', tag: 'Pro', tone: 'violet' },
+  dart: { icon: 'DT', tag: 'Mobile', tone: 'teal' },
+  sql: { icon: 'DB', tag: 'Mudah dipelajari', tone: 'emerald' },
+}
 
 const copy = {
   id: {
@@ -49,11 +51,32 @@ const copy = {
 function LanguageSelectionScreen({
   language = 'id',
   selectedLanguages,
+  categories,
   onToggleLanguage,
   onContinue,
+  onSkip,
+  isLoading = false,
+  error = '',
 }: LanguageSelectionScreenProps) {
   const text = copy[language]
   const hasSelection = selectedLanguages.length > 0
+
+  const onboardingOptions: LanguageOption[] = categories.map((category) => {
+    const normalizedName = category.name.toLowerCase().replace(/[^a-z0-9]+/g, '')
+    const fallbackIcon = category.name
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
+
+    return {
+      ...category,
+      icon: categoryMeta[normalizedName]?.icon ?? fallbackIcon,
+      tag: categoryMeta[normalizedName]?.tag ?? 'Kategori',
+      tone: categoryMeta[normalizedName]?.tone ?? 'violet',
+    }
+  })
 
   return (
     <main className="onboarding-screen">
@@ -69,10 +92,15 @@ function LanguageSelectionScreen({
             <p className="onboarding-eyebrow">{text.progress}</p>
             <h1 className="onboarding-title">{text.title}</h1>
             <p className="onboarding-description">{text.description}</p>
+            {error ? (
+              <p className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                {error}
+              </p>
+            ) : null}
           </header>
 
           <div className="onboarding-grid">
-            {programmingLanguageOptions.map((item, index) => {
+            {onboardingOptions.map((item, index) => {
               const isSelected = selectedLanguages.includes(item.id)
 
               return (
@@ -101,6 +129,12 @@ function LanguageSelectionScreen({
                 </button>
               )
             })}
+
+            {!isLoading && onboardingOptions.length === 0 ? (
+              <div className="col-span-full rounded-[28px] border border-white/10 bg-white/5 px-6 py-8 text-sm text-slate-300">
+                Kategori belum tersedia. Coba muat ulang halaman.
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -112,9 +146,18 @@ function LanguageSelectionScreen({
           <button
             type="button"
             onClick={onContinue}
-            className={`onboarding-footer__continue ${hasSelection ? 'is-active' : ''}`}
+            disabled={!hasSelection || isLoading}
+            className={`onboarding-footer__continue ${hasSelection && !isLoading ? 'is-active' : ''}`}
           >
-            {hasSelection ? text.continue : text.skip}
+            {isLoading ? 'Menyimpan...' : text.continue}
+          </button>
+
+          <button
+            type="button"
+            onClick={onSkip}
+            className="onboarding-footer__skip"
+          >
+            {text.skip}
           </button>
         </footer>
       </section>

@@ -165,7 +165,7 @@ export const courseCatalog: Course[] = [
     access: 'paid',
     priceLabel: 'Rp139.000',
     mentor: 'Ardiansyah Hadi',
-    description: 'Belajar Kotlin untuk membangun aplikasi Android modern dengan fondasi yang kuat.',
+    description: 'Bahasa utama untuk mengembangkan aplikasi Android modern.',
     outcomes: ['Memahami syntax Kotlin', 'Membuat UI Android dasar', 'Siap masuk ke Jetpack Compose'],
     syllabus: ['Kotlin fundamentals', 'Activity dan lifecycle', 'Data class dan coroutine dasar'],
   },

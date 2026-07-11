@@ -3,6 +3,8 @@ import type { Course } from '../../types/product'
 
 type CourseShowcaseProps = {
   courses: Course[]
+  isLoading?: boolean
+  error?: string
   activeTopic: string
   learningLanguages: string[]
   languageOptions: Array<{ id: string; name: string }>
@@ -19,6 +21,8 @@ const coursePreviewIcons = ['◎', '◈', '⬡', '◌']
 
 function CourseShowcase({
   courses,
+  isLoading = false,
+  error = '',
   activeTopic,
   learningLanguages,
   languageOptions,
@@ -85,16 +89,16 @@ function CourseShowcase({
 
           <div className="home-course-filters" aria-label="Pilih topik kursus">
             <button className={activeTopic === 'all' ? 'is-active' : ''} type="button" onClick={onOpenAllTopic}>
-              Semua
+              Semua Jalur
             </button>
-            {learningLanguages.map((languageId) => (
+            {learningLanguages.map((trackId) => (
               <button
-                className={activeTopic === languageId ? 'is-active' : ''}
-                key={languageId}
+                className={activeTopic === trackId ? 'is-active' : ''}
+                key={trackId}
                 type="button"
-                onClick={() => onSelectTopic(languageId)}
+                onClick={() => onSelectTopic(trackId)}
               >
-                {getLanguageLabel(languageId)}
+                {getLanguageLabel(trackId)}
               </button>
             ))}
             <button
@@ -103,14 +107,14 @@ function CourseShowcase({
               onClick={onShowInterestPanel}
               aria-expanded={isInterestPanelOpen}
             >
-              {isInterestPanelOpen ? 'Sembunyikan' : 'Tambah Minat'}
+              {isInterestPanelOpen ? 'Sembunyikan' : 'Jalur Lainnya'}
             </button>
           </div>
         </div>
       </div>
 
       {isInterestPanelOpen && (
-        <div className="home-interest-panel" aria-label="Tambah minat bahasa pemrograman">
+        <div className="home-interest-panel" aria-label="Tambah minat jalur kelas">
           {languageOptions.map((item) => {
             const isSelected = learningLanguages.includes(item.id)
 
@@ -137,41 +141,58 @@ function CourseShowcase({
         role="list"
         onWheel={handleWheel}
       >
-        {carouselCourses.map((course, index) => (
-          <article
-            className="home-course-card"
-            key={`${course.id}-${index}`}
-            role="button"
-            tabIndex={0}
-            aria-label={`Lihat detail ${course.title}`}
-            onClick={() => openCourse(course)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                openCourse(course)
-              }
-            }}
-          >
-            <div className="home-course-card__media" aria-hidden="true">
-              <span className={`home-course-card__badge ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
-                {course.access === 'free' ? 'Hot' : 'Populer'}
-              </span>
-              <div className="home-course-card__icon">{coursePreviewIcons[index % coursePreviewIcons.length]}</div>
-            </div>
-
-            <div className="home-course-card__body">
-              <span className="home-course-card__level">{course.level}</span>
-              <h3>{course.title}</h3>
-              <p>Oleh {course.mentor}</p>
-              <div className="home-course-card__meta" aria-label="Informasi harga kelas">
-                <span className={`home-course-card__price ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
-                  {course.priceLabel}
+        {isLoading ? (
+          <div className="home-course-empty-state">
+            <strong>Memuat kursus dari backend...</strong>
+            <p>Ambil kopi dulu, data course lagi disiapkan.</p>
+          </div>
+        ) : error ? (
+          <div className="home-course-empty-state">
+            <strong>Gagal memuat course</strong>
+            <p>{error}</p>
+          </div>
+        ) : carouselCourses.length > 0 ? (
+          carouselCourses.map((course, index) => (
+            <article
+              className="home-course-card"
+              key={`${course.id}-${index}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`Lihat detail ${course.title}`}
+              onClick={() => openCourse(course)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  openCourse(course)
+                }
+              }}
+            >
+              <div className="home-course-card__media" aria-hidden="true">
+                <span className={`home-course-card__badge ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                  {course.access === 'free' ? 'Hot' : 'Populer'}
                 </span>
-                <span className="home-course-card__access">{course.access === 'free' ? 'Gratis' : 'Premium'}</span>
+                <div className="home-course-card__icon">{coursePreviewIcons[index % coursePreviewIcons.length]}</div>
               </div>
-            </div>
-          </article>
-        ))}
+
+              <div className="home-course-card__body">
+                <span className="home-course-card__level">{course.level}</span>
+                <h3>{course.title}</h3>
+                <p>Oleh {course.mentor}</p>
+                <div className="home-course-card__meta" aria-label="Informasi harga kelas">
+                  <span className={`home-course-card__price ${course.access === 'free' ? 'is-free' : 'is-paid'}`}>
+                    {course.priceLabel}
+                  </span>
+                  <span className="home-course-card__access">{course.access === 'free' ? 'Gratis' : 'Premium'}</span>
+                </div>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="home-course-empty-state">
+            <strong>Belum ada course tersedia</strong>
+            <p>Coba lagi sebentar lagi atau cek backend seed data-nya.</p>
+          </div>
+        )}
       </div>
     </section>
   )
