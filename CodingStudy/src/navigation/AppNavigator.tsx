@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CourseDetailScreen from '../screens/CourseDetail/CourseDetailScreen'
 import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen'
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
+import DashboardAdmin from '../screens/DashboardAdmin/DashboardAdmin'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
@@ -38,14 +39,17 @@ function AppNavigator({
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
-  const isMentor = currentUser?.role?.toLowerCase() === 'mentor'
+  const currentUserRole = currentUser?.role?.toLowerCase()
+  const isAdmin = currentUserRole === 'admin'
+  const isMentor = currentUserRole === 'mentor'
   const shouldCompleteLanguageSelection =
-    isAuthenticated && !hasCompletedLanguageSelection
+    isAuthenticated && !isAdmin && !hasCompletedLanguageSelection
+  const authenticatedRedirectPath = isAdmin ? '/dashboard' : '/home'
   const postAuthRedirectPath = !isAuthenticated
     ? '/login'
     : shouldCompleteLanguageSelection
       ? '/language-selection'
-      : '/home'
+      : authenticatedRedirectPath
 
   function handleOpenCourse(course: Course) {
     navigate(`/courses/${course.id}`)
@@ -127,6 +131,8 @@ function AppNavigator({
         element={
           !isAuthenticated ? (
             <Navigate to="/login" replace />
+          ) : isAdmin ? (
+            <Navigate to="/dashboard" replace />
           ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
@@ -148,6 +154,8 @@ function AppNavigator({
             <Navigate to="/login" replace />
           ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
+          ) : isAdmin ? (
+            <DashboardAdmin user={currentUser} onLogout={handleLogout} />
           ) : isMentor ? (
             <DashboardMentor user={currentUser} onLogout={handleLogout} />
           ) : (
