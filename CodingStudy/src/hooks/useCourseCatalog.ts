@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { courseCatalog } from '../data/courses'
 import { listCourses } from '../services/courseServices'
 import { mapBackendCourses } from '../utils/courseMapper'
 import type { Course } from '../types/product'
@@ -21,15 +22,16 @@ export function useCourseCatalog(limit = 100) {
           return
         }
 
-        setCourses(mapBackendCourses(result.courses))
+        const mappedCourses = mapBackendCourses(result.courses)
+        setCourses(mappedCourses.length > 0 ? mappedCourses : courseCatalog)
       } catch (requestError) {
         if (!isActive) {
           return
         }
 
-        const message = requestError instanceof Error ? requestError.message : 'Gagal memuat course'
-        setError(message)
-        setCourses([])
+        console.warn(requestError instanceof Error ? requestError.message : 'Gagal memuat course')
+        setError('')
+        setCourses(courseCatalog)
       } finally {
         if (isActive) {
           setIsLoading(false)
