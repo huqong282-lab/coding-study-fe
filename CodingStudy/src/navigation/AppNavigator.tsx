@@ -9,6 +9,15 @@ import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCre
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
+import NotFoundScreen from '../screens/NotFound/NotFoundScreen'
+import {
+  ComingSoonClassScreen,
+  ForbiddenScreen,
+  ForumEmptyScreen,
+  InternalServerErrorScreen,
+  MaintenanceScreen,
+  UnauthorizedScreen,
+} from '../screens/SystemStates/SystemStateScreens'
 import type { Course } from '../types/product'
 import type { AppFlowController } from '../types/user'
 
@@ -216,7 +225,14 @@ function AppNavigator({
           )
         }
       />
-      <Route path="*" element={<Navigate to={postAuthRedirectPath} replace />} />
+      <Route path="/404" element={<NotFoundScreen />} />
+      <Route path="/500" element={<InternalServerErrorScreen />} />
+      <Route path="/maintenance" element={<MaintenanceScreen />} />
+      <Route path="/403" element={<ForbiddenScreen />} />
+      <Route path="/unauthorized" element={<UnauthorizedScreen />} />
+      <Route path="/forum-empty" element={<ForumEmptyScreen />} />
+      <Route path="/coming-soon" element={<ComingSoonClassScreen />} />
+      <Route path="*" element={<NotFoundScreen />} />
     </Routes>
   )
 }
