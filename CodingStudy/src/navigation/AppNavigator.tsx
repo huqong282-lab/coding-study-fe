@@ -28,6 +28,9 @@ import {
   MaintenanceScreen,
   UnauthorizedScreen,
 } from '../screens/SystemStates/SystemStateScreens'
+
+import OtpVerificationScreen from '../screens/OtpVerification/OtpVerificationScreen'
+
 import type { Course } from '../types/product'
 import type { AppFlowController } from '../types/user'
 
