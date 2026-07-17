@@ -18,6 +18,7 @@ import {
   MaintenanceScreen,
   UnauthorizedScreen,
 } from '../screens/SystemStates/SystemStateScreens'
+import OtpVerificationScreen from '../screens/OtpVerification/OtpVerificationScreen'
 import type { Course } from '../types/product'
 import type { AppFlowController } from '../types/user'
 
@@ -116,6 +117,7 @@ function AppNavigator({
           )
         }
       />
+      <Route path="/otp-verification" element={<OtpVerificationScreen />} />
       <Route
         path="/language-selection"
         element={
