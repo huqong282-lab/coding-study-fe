@@ -15,6 +15,7 @@ export type AppUser = {
   name: string
   email: string
   role?: string
+  onboardingCompleted?: boolean
 }
 
 export type AuthCredentials = {
@@ -32,6 +33,12 @@ export type AuthSession = {
   user: AppUser
   accessToken: string
   refreshToken: string
+}
+
+export type OnboardingCategory = {
+  id: string
+  name: string
+  description?: string | null
 }
 
 export type AppFlowState = {
@@ -59,7 +66,6 @@ export type AppFlowActions = {
   handleLogin: (credentials: AuthCredentials) => Promise<void>
   handleRegister: (user: RegisterCredentials) => Promise<void>
   handleContinueLanguageSelection: () => Promise<boolean>
-  handleSkipLanguageSelection: () => void
   handleLogout: () => void
 }
 

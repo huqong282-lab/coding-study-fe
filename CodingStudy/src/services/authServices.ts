@@ -6,8 +6,24 @@ export type LoginPayload = AuthCredentials
 export type RegisterPayload = RegisterCredentials
 export type LoginResult = AuthSession
 
+type BackendAuthUser = Omit<AppUser, 'role'> & {
+  role?: string | { name?: string | null } | null
+}
+
+function normalizeAuthUser(user: BackendAuthUser): AppUser {
+  return {
+    ...user,
+    role: typeof user.role === 'string' ? user.role : user.role?.name ?? undefined,
+    onboardingCompleted: Boolean(user.onboardingCompleted),
+  }
+}
+
 export async function login(payload: LoginPayload) {
-  const response = await apiFetch<LoginResult>('/auth/login', {
+  const response = await apiFetch<{
+    user: BackendAuthUser
+    accessToken: string
+    refreshToken: string
+  }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -16,11 +32,14 @@ export async function login(payload: LoginPayload) {
     throw new Error('Login response is missing data')
   }
 
-  return response.data
+  return {
+    ...response.data,
+    user: normalizeAuthUser(response.data.user),
+  }
 }
 
 export async function register(payload: RegisterPayload) {
-  const response = await apiFetch<AuthUser>('/auth/register', {
+  const response = await apiFetch<BackendAuthUser>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -29,7 +48,7 @@ export async function register(payload: RegisterPayload) {
     throw new Error('Register response is missing data')
   }
 
-  return response.data
+  return normalizeAuthUser(response.data)
 }
 
 export async function refreshAccessToken(refreshToken: string) {

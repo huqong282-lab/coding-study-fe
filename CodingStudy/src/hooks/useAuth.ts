@@ -35,6 +35,7 @@ export function useAuth(): AppFlowController {
   )
   const [currentUser, setCurrentUser] = useState<AppUser | null>(storedAuthSession?.user ?? null)
   const [accessToken, setAccessToken] = useState(storedAuthSession?.accessToken ?? '')
+  const [refreshToken, setRefreshToken] = useState(storedAuthSession?.refreshToken ?? '')
   const [sessionError, setSessionError] = useState('')
 
   const loginRequest = useFetch(authServices.login)
@@ -46,14 +47,18 @@ export function useAuth(): AppFlowController {
       setHasCompletedLanguageSelection(false)
       setCurrentUser(null)
       setAccessToken('')
+      setRefreshToken('')
       setSessionError('Sesi habis, silakan login ulang')
       return
     }
 
     setIsAuthenticated(Boolean(session.accessToken))
-    setHasCompletedLanguageSelection(Boolean(session.hasCompletedLanguageSelection))
+    setHasCompletedLanguageSelection(
+      Boolean(session.user?.onboardingCompleted ?? session.hasCompletedLanguageSelection),
+    )
     setCurrentUser(session.user ?? null)
     setAccessToken(session.accessToken ?? '')
+    setRefreshToken(session.refreshToken ?? '')
     setSessionError('')
   }
 
@@ -98,7 +103,7 @@ export function useAuth(): AppFlowController {
       persistAuthSession(
         currentUser,
         accessToken,
-        storedAuthSession?.refreshToken ?? '',
+        refreshToken,
         true,
         selectedProgrammingLanguages,
       )
@@ -137,15 +142,20 @@ export function useAuth(): AppFlowController {
 
     setCurrentUser(result.user)
     setAccessToken(result.accessToken)
+    setRefreshToken(result.refreshToken)
     setIsAuthenticated(true)
     setHasCompletedLanguageSelection(Boolean(result.user.onboardingCompleted))
     setSessionError('')
+
+    const isSameStoredUser = storedAuthSession?.user?.id === result.user.id
     persistAuthSession(
       result.user,
       result.accessToken,
       result.refreshToken,
       Boolean(result.user.onboardingCompleted),
-      result.user.onboardingCompleted ? storedAuthSession?.selectedProgrammingLanguages ?? [] : [],
+      result.user.onboardingCompleted && isSameStoredUser
+        ? storedAuthSession?.selectedProgrammingLanguages ?? []
+        : [],
     )
   }
 
@@ -162,21 +172,10 @@ export function useAuth(): AppFlowController {
     setMode('login')
   }
 
-  function handleSkipLanguageSelection() {
-    setHasCompletedLanguageSelection(true)
-    setCurrentUser((user) => (user ? { ...user, onboardingCompleted: true } : user))
-    persistAuthSession(
-      currentUser,
-      accessToken,
-      storedAuthSession?.refreshToken ?? '',
-      true,
-      selectedProgrammingLanguages,
-    )
-  }
-
   function handleLogout() {
     setIsAuthenticated(false)
     setAccessToken('')
+    setRefreshToken('')
     setCurrentUser(null)
     setHasCompletedLanguageSelection(false)
     setSessionError('')
@@ -209,7 +208,6 @@ export function useAuth(): AppFlowController {
     handleLogin,
     handleRegister,
     handleContinueLanguageSelection,
-    handleSkipLanguageSelection,
     handleLogout,
   }
 }

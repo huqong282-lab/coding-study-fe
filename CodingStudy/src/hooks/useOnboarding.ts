@@ -70,16 +70,13 @@ export function useOnboarding({
       return false
     }
 
-    const categoryIdMap = new Map(
-      onboardingCategories.map((category: OnboardingCategory) => [
-        normalizeCategoryKey(category.name),
-        category.id,
-      ]),
+    const availableCategoryIds = new Set(
+      onboardingCategories.map((category: OnboardingCategory) => category.id),
     )
 
-    const selectedCategoryIds = selectedProgrammingLanguages
-      .map((languageId) => categoryIdMap.get(languageId))
-      .filter((categoryId): categoryId is string => Boolean(categoryId))
+    const selectedCategoryIds = selectedProgrammingLanguages.filter((categoryId) =>
+      availableCategoryIds.has(categoryId),
+    )
 
     if (selectedCategoryIds.length !== selectedProgrammingLanguages.length) {
       setOnboardingError('Beberapa kategori terpilih tidak ditemukan di backend.')
@@ -107,7 +104,6 @@ export function useOnboarding({
   function resetOnboardingState() {
     setSelectedProgrammingLanguages([])
     setOnboardingError('')
-    onboardingCategoriesRequest.reset()
     completeOnboardingRequest.reset()
   }
 
