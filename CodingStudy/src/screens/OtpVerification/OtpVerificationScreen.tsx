@@ -1,25 +1,36 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, ClipboardEvent, KeyboardEvent } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { otpVerificationServices } from '../../services/otpVerificationServices'
 
 const OTP_LENGTH = 6
 const RESEND_WAIT_SECONDS = 60
-const DUMMY_EMAIL = 'nama@email.com'
 
 type VerificationStatus = 'idle' | 'loading' | 'error' | 'success'
 
 function OtpVerificationScreen() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const email = typeof location.state?.email === 'string' ? location.state.email.trim() : ''
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [secondsLeft, setSecondsLeft] = useState(RESEND_WAIT_SECONDS)
   const [status, setStatus] = useState<VerificationStatus>('idle')
   const [message, setMessage] = useState('')
+  const [isOtpVerified, setIsOtpVerified] = useState(false)
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
 
   const isComplete = otp.every(Boolean)
-  const formattedTime = `00:${String(secondsLeft).padStart(2, '0')}`
+  const formattedTime = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`
 
   useEffect(() => {
     inputRefs.current[0]?.focus()
   }, [])
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/register', { replace: true })
+    }
+  }, [email, navigate])
 
   useEffect(() => {
     if (secondsLeft === 0) return undefined
@@ -31,12 +42,25 @@ function OtpVerificationScreen() {
     return () => window.clearTimeout(timerId)
   }, [secondsLeft])
 
+  useEffect(() => {
+    if (!isOtpVerified) {
+      return undefined
+    }
+
+    const redirectTimer = window.setTimeout(() => {
+      navigate('/login', { replace: true })
+    }, 1200)
+
+    return () => window.clearTimeout(redirectTimer)
+  }, [isOtpVerified, navigate])
+
   function focusInput(index: number) {
     inputRefs.current[index]?.focus()
   }
 
   function updateOtp(nextOtp: string[]) {
     setOtp(nextOtp)
+    setIsOtpVerified(false)
     if (status !== 'idle') {
       setStatus('idle')
       setMessage('')
@@ -87,7 +111,7 @@ function OtpVerificationScreen() {
     focusInput(Math.min(pastedOtp.length, OTP_LENGTH - 1))
   }
 
-  function handleVerify() {
+  async function handleVerify() {
     if (!isComplete) {
       setStatus('error')
       setMessage('Masukkan 6 digit kode OTP terlebih dahulu.')
@@ -98,21 +122,39 @@ function OtpVerificationScreen() {
     setStatus('loading')
     setMessage('')
 
-    // Dummy UI state only. Replace this with an API integration later.
-    window.setTimeout(() => {
+    try {
+      const response = await otpVerificationServices.verifyOtp(email, otp.join(''))
       setStatus('success')
-      setMessage('Kode OTP berhasil diverifikasi.')
-    }, 900)
+      setMessage(response.message || 'Kode OTP berhasil diverifikasi.')
+      setIsOtpVerified(true)
+    } catch (error) {
+      setStatus('error')
+      setMessage(error instanceof Error ? error.message : 'Verifikasi OTP gagal.')
+    }
   }
 
-  function handleResend() {
+  async function handleResend() {
     if (secondsLeft > 0) return
 
-    setSecondsLeft(RESEND_WAIT_SECONDS)
-    setStatus('success')
-    setMessage('Kode OTP baru telah dikirim ke email kamu.')
-    setOtp(Array(OTP_LENGTH).fill(''))
-    focusInput(0)
+    setStatus('loading')
+    setMessage('')
+    setIsOtpVerified(false)
+
+    try {
+      const response = await otpVerificationServices.resendOtp(email)
+      setSecondsLeft(RESEND_WAIT_SECONDS)
+      setStatus('success')
+      setMessage(response.message || 'Kode OTP baru telah dikirim ke email kamu.')
+      setOtp(Array(OTP_LENGTH).fill(''))
+      focusInput(0)
+    } catch (error) {
+      setStatus('error')
+      setMessage(error instanceof Error ? error.message : 'Gagal mengirim ulang OTP.')
+    }
+  }
+
+  if (!email) {
+    return null
   }
 
   return (
@@ -130,7 +172,7 @@ function OtpVerificationScreen() {
               <p className="mt-5 text-xs font-semibold uppercase tracking-[0.32em] text-violet-300/80">Keamanan akun</p>
               <h1 id="otp-title" className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">Verifikasi OTP</h1>
               <p className="mt-3 text-sm leading-6 text-slate-400 sm:text-base">
-                Kode OTP telah dikirim ke <span className="font-semibold text-slate-200">{DUMMY_EMAIL}</span>. Masukkan kode 6 digit untuk melanjutkan.
+                Kode OTP telah dikirim ke <span className="font-semibold text-slate-200">{email}</span>. Masukkan kode 6 digit untuk melanjutkan.
               </p>
             </div>
 
@@ -146,7 +188,7 @@ function OtpVerificationScreen() {
                     pattern="[0-9]*"
                     autoComplete={index === 0 ? 'one-time-code' : 'off'}
                     aria-label={`Digit OTP ke-${index + 1}`}
-                    maxLength={OTP_LENGTH}
+                    maxLength={1}
                     value={digit}
                     onChange={(event) => handleChange(index, event)}
                     onKeyDown={(event) => handleKeyDown(index, event)}
@@ -155,7 +197,7 @@ function OtpVerificationScreen() {
                   />
                 ))}
               </div>
-              <p className="text-center text-sm text-slate-400">Kode akan kedaluwarsa dalam <span className="font-semibold text-violet-300">{formattedTime}</span></p>
+              <p className="text-center text-sm text-slate-400">Kirim ulang OTP tersedia dalam <span className="font-semibold text-violet-300">{formattedTime}</span></p>
             </div>
 
             {status !== 'idle' && message && (

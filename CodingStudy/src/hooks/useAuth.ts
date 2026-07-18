@@ -165,11 +165,12 @@ export function useAuth(): AppFlowController {
 
     const result = await registerRequest.execute(user)
     if (!result) {
-      return
+      return false
     }
 
     setSessionError('')
     setMode('login')
+    return true
   }
 
   function handleLogout() {

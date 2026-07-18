@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 type RegisterProps = {
   language?: 'id' | 'en'
   onSwitchToLogin: () => void
-  onRegister?: (user: { name: string; email: string; password: string }) => Promise<void> | void
+  onRegister?: (user: { name: string; email: string; password: string }) => Promise<boolean> | boolean
   serverError?: string
   isLoading?: boolean
 }
