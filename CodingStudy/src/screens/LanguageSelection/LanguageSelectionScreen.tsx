@@ -12,7 +12,6 @@ type LanguageSelectionScreenProps = {
   categories: OnboardingCategory[]
   onToggleLanguage: (languageId: string) => void
   onContinue: () => Promise<boolean>
-  onSkip: () => void
   isLoading?: boolean
   error?: string
 }
@@ -36,7 +35,6 @@ const copy = {
     description: 'Pilih satu atau lebih - bisa diubah kapan saja',
     selected: 'bahasa dipilih',
     continue: 'Lanjut',
-    skip: 'Lewati',
   },
   en: {
     progress: 'Step 1 of 3',
@@ -44,7 +42,6 @@ const copy = {
     description: 'Pick one or more - you can change it anytime',
     selected: 'languages selected',
     continue: 'Continue',
-    skip: 'Skip',
   },
 }
 
@@ -54,7 +51,6 @@ function LanguageSelectionScreen({
   categories,
   onToggleLanguage,
   onContinue,
-  onSkip,
   isLoading = false,
   error = '',
 }: LanguageSelectionScreenProps) {
@@ -152,13 +148,6 @@ function LanguageSelectionScreen({
             {isLoading ? 'Menyimpan...' : text.continue}
           </button>
 
-          <button
-            type="button"
-            onClick={onSkip}
-            className="onboarding-footer__skip"
-          >
-            {text.skip}
-          </button>
         </footer>
       </section>
     </main>
