@@ -64,7 +64,7 @@ export type AppFlowActions = {
   toggleProgrammingLanguage: (languageId: string) => void
   setSelectedProgrammingLanguages: (languageIds: string[]) => void
   handleLogin: (credentials: AuthCredentials) => Promise<void>
-  handleRegister: (user: RegisterCredentials) => Promise<void>
+  handleRegister: (user: RegisterCredentials) => Promise<boolean>
   handleContinueLanguageSelection: () => Promise<boolean>
   handleLogout: () => void
 }

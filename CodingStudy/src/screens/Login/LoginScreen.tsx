@@ -10,7 +10,7 @@ type LoginScreenProps = {
   onModeChange: (mode: AuthMode) => void
   onLanguageChange: (language: Language) => void
   onLogin: (credentials: { email: string; password: string }) => Promise<void> | void
-  onRegister: (user: { name: string; email: string; password: string }) => Promise<void> | void
+  onRegister: (user: { name: string; email: string; password: string }) => Promise<boolean> | boolean
   authError?: string
   isAuthLoading?: boolean
 }
@@ -32,6 +32,13 @@ function LoginScreen({
   function handleModeChange(nextMode: AuthMode) {
     onModeChange(nextMode)
     navigate(nextMode === 'login' ? '/login' : '/register')
+  }
+
+  async function handleRegister(user: { name: string; email: string; password: string }) {
+    const registered = await onRegister(user)
+    if (registered) {
+      navigate('/verify-otp', { state: { email: user.email } })
+    }
   }
 
   return (
@@ -172,7 +179,7 @@ function LoginScreen({
                 <Register
                   language={language}
                   onSwitchToLogin={() => handleModeChange('login')}
-                  onRegister={onRegister}
+                  onRegister={handleRegister}
                   serverError={authError}
                   isLoading={isAuthLoading}
                 />

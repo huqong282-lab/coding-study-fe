@@ -116,7 +116,7 @@ function AppNavigator({
           )
         }
       />
-      <Route path="/otp-verification" element={<OtpVerificationScreen />} />
+      <Route path="/verify-otp" element={<OtpVerificationScreen />} />
       <Route
         path="/language-selection"
         element={
