@@ -5,6 +5,9 @@ export type AuthUser = AppUser
 export type LoginPayload = AuthCredentials
 export type RegisterPayload = RegisterCredentials
 export type LoginResult = AuthSession
+export type ForgotPasswordPayload = {
+  email: string
+}
 
 type BackendAuthUser = Omit<AppUser, 'role'> & {
   role?: string | { name?: string | null } | null
@@ -49,6 +52,15 @@ export async function register(payload: RegisterPayload) {
   }
 
   return normalizeAuthUser(response.data)
+}
+
+export async function requestPasswordReset(payload: ForgotPasswordPayload) {
+  const response = await apiFetch<null>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+  return response.message
 }
 
 export async function refreshAccessToken(refreshToken: string) {

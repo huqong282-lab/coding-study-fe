@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 type LoginProps = {
   language?: 'id' | 'en'
@@ -155,9 +156,9 @@ function Login({
           />
           <span className="select-none">{copy.remember}</span>
         </label>
-        <button className="text-sm font-semibold text-violet-300 transition hover:text-violet-200" type="button">
+        <Link className="text-sm font-semibold text-violet-300 transition hover:text-violet-200" to="/forgot-password">
           {copy.forgotPassword}
-        </button>
+        </Link>
       </div>
 
       {(submitted || serverError) && (

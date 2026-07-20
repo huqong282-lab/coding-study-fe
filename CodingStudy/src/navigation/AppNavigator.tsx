@@ -6,6 +6,7 @@ import DashboardAdmin from '../screens/DashboardAdmin/DashboardAdmin'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
+import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
@@ -115,6 +116,10 @@ function AppNavigator({
             />
           )
         }
+      />
+      <Route
+        path="/forgot-password"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordScreen />}
       />
       <Route path="/verify-otp" element={<OtpVerificationScreen />} />
       <Route
