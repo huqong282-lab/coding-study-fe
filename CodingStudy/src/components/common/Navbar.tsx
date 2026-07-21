@@ -10,7 +10,7 @@ type NavbarProps = {
 }
 
 const navItems = [
-  { label: 'Kelas', href: '#classes' },
+  { label: 'Kelas', to: '/classes' },
   { label: 'Komunitas', href: '#community' },
   { label: 'Roadmap', href: '#tech' },
   { label: 'Tentang Kami', href: '#footer' },
@@ -175,11 +175,17 @@ function Navbar({ user, onLogout, variant = 'default', title = 'Profil & Dashboa
       </Link>
 
       <nav className="home-nav-links" aria-label="Learning navigation">
-        {navItems.map((item) => (
-          <a key={item.label} href={item.href}>
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) =>
+          'to' in item ? (
+            <Link key={item.label} to={item.to}>
+              {item.label}
+            </Link>
+          ) : (
+            <a key={item.label} href={item.href}>
+              {item.label}
+            </a>
+          ),
+        )}
       </nav>
 
       <div className="home-nav-actions">

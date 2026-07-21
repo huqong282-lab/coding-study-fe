@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CourseDetailScreen from '../screens/CourseDetail/CourseDetailScreen'
 import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen'
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
+import AllCoursesScreen from '../screens/Classes/AllCoursesScreen'
 import DashboardAdmin from '../screens/DashboardAdmin/DashboardAdmin'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
@@ -197,6 +198,18 @@ function AppNavigator({
             />
           ) : (
             <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+      <Route
+        path="/classes"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <AllCoursesScreen user={currentUser} onLogout={handleLogout} onOpenCourse={handleOpenCourse} />
           )
         }
       />
