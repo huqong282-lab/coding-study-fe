@@ -292,9 +292,21 @@ function DashboardMentor({ user, onLogout }: DashboardMentorProps) {
 
                       <div className="mentor-dashboard-course-footer">
                         <small>Mentor: {course.mentor?.name ?? user?.name ?? 'Mentor'}</small>
-                        <button type="button" onClick={() => navigate(`/courses/${course.id}`)}>
-                          Lihat Detail
-                        </button>
+                        <div className="mentor-dashboard-course-actions">
+                          <button type="button" onClick={() => navigate(`/courses/${course.id}`)}>
+                            Lihat Detail
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(`/dashboard/classes/${course.id}/modules`, {
+                                state: { courseTitle: course.title },
+                              })
+                            }
+                          >
+                            Management Module
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}
