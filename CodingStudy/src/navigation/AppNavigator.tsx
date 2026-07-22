@@ -7,6 +7,7 @@ import DashboardAdmin from '../screens/DashboardAdmin/DashboardAdmin'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
+import MentorModuleManagementScreen from '../screens/MentorModuleManagement/MentorModuleManagementScreen'
 import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
@@ -196,6 +197,20 @@ function AppNavigator({
               accessToken={accessToken}
               onLogout={handleLogout}
             />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/classes/:courseId/modules"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : isMentor ? (
+            <MentorModuleManagementScreen user={currentUser} onLogout={handleLogout} />
           ) : (
             <Navigate to="/dashboard" replace />
           )
