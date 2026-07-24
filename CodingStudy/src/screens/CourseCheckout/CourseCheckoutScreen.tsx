@@ -452,7 +452,7 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
                 </span>
               </p>
 
-              <button className="btn btn-primary course-checkout-action" type="button" onClick={() => navigate(`/courses/${course.id}/learn`)}>
+              <button className="btn btn-primary course-checkout-action" type="button" onClick={() => navigate(`/courses/${course.id}/payment-complete`)}>
                 {text.payNow}
               </button>
 
