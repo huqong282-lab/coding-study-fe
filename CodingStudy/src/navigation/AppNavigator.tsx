@@ -210,7 +210,7 @@ function AppNavigator({
           ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : isMentor ? (
-            <MentorModuleManagementScreen user={currentUser} onLogout={handleLogout} />
+            <MentorModuleManagementScreen user={currentUser} accessToken={accessToken} onLogout={handleLogout} />
           ) : (
             <Navigate to="/dashboard" replace />
           )
