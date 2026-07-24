@@ -8,6 +8,7 @@ import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
 import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
 import MentorModuleManagementScreen from '../screens/MentorModuleManagement/MentorModuleManagementScreen'
+import PaymentCompleteScreen from '../screens/PaymentComplete/PaymentCompleteScreen'
 import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
@@ -245,6 +246,16 @@ function AppNavigator({
             <Navigate to="/language-selection" replace />
           ) : (
             <CourseCheckoutScreen language={language} user={currentUser} onLogout={handleLogout} />
+          )
+        }
+      />
+      <Route
+        path="/courses/:courseId/payment-complete"
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <PaymentCompleteScreen language={language} user={currentUser} onLogout={handleLogout} />
           )
         }
       />

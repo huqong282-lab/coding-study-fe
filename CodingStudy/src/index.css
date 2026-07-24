@@ -5442,6 +5442,179 @@
     color: #8f6bff;
   }
 
+  .payment-complete-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 16% 10%, rgba(124, 92, 255, 0.18), transparent 24%),
+      radial-gradient(circle at 86% 16%, rgba(70, 183, 255, 0.11), transparent 22%),
+      linear-gradient(180deg, #070611 0%, #05040c 100%);
+  }
+
+  .payment-complete-shell {
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 3rem 0 5rem;
+  }
+
+  .payment-complete-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.72fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    min-height: 34rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px;
+    padding: clamp(1.5rem, 5vw, 4rem);
+    color: #f7f5ff;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+      rgba(12, 10, 26, 0.78);
+    box-shadow:
+      0 34px 90px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px);
+  }
+
+  .payment-complete-copy {
+    display: grid;
+    justify-items: start;
+  }
+
+  .payment-complete-badge {
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border: 1px solid rgba(110, 231, 183, 0.34);
+    border-radius: 28px;
+    color: #06120e;
+    background: linear-gradient(135deg, #6ee7b7, #61d8ff);
+    box-shadow: 0 0 48px rgba(110, 231, 183, 0.22);
+    font-weight: 950;
+  }
+
+  .payment-complete-eyebrow {
+    margin: 1.4rem 0 0.7rem;
+    color: #6ee7b7;
+    font-size: 0.85rem;
+    font-weight: 950;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .payment-complete-copy h1 {
+    max-width: 42rem;
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(2.7rem, 6vw, 5.2rem);
+    line-height: 0.98;
+    text-wrap: balance;
+    text-shadow: 0 0 48px rgba(124, 92, 255, 0.35);
+  }
+
+  .payment-complete-description {
+    max-width: 39rem;
+    margin: 1rem 0 0;
+    color: #a9a1d6;
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+
+  .payment-complete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+
+  .payment-complete-actions .btn {
+    min-height: 3.25rem;
+  }
+
+  .payment-complete-receipt {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid rgba(124, 92, 255, 0.22);
+    border-radius: 24px;
+    padding: 1.25rem;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(124, 92, 255, 0.2), transparent 30%),
+      rgba(5, 4, 12, 0.74);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  }
+
+  .payment-complete-receipt__head,
+  .payment-complete-receipt__success,
+  .payment-complete-details div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .payment-complete-receipt__head {
+    color: #a9a1d6;
+    font-weight: 900;
+  }
+
+  .payment-complete-receipt__head strong {
+    color: #ffffff;
+  }
+
+  .payment-complete-receipt__success {
+    justify-content: flex-start;
+    border: 1px solid rgba(110, 231, 183, 0.2);
+    border-radius: 18px;
+    padding: 1rem;
+    background: rgba(110, 231, 183, 0.08);
+  }
+
+  .payment-complete-receipt__success > span {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    color: #06120e;
+    background: #6ee7b7;
+    font-weight: 950;
+  }
+
+  .payment-complete-receipt__success small,
+  .payment-complete-details dt {
+    color: #a9a1d6;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .payment-complete-receipt__success strong,
+  .payment-complete-details dd {
+    color: #ffffff;
+    font-weight: 900;
+  }
+
+  .payment-complete-details {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+  }
+
+  .payment-complete-details div {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding-bottom: 0.85rem;
+  }
+
+  .payment-complete-details dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .payment-complete-receipt > p {
+    margin: 0;
+    color: #a9a1d6;
+    line-height: 1.6;
+  }
+
   @media (min-width: 1100px) {
     .course-checkout-layout {
       grid-template-columns: minmax(0, 1fr) 26rem;
@@ -5474,6 +5647,10 @@
     }
 
     .course-checkout-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .payment-complete-panel {
       grid-template-columns: 1fr;
     }
 
