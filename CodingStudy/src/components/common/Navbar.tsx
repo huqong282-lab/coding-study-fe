@@ -56,7 +56,7 @@ function Navbar({ user, onLogout, variant = 'default', title = 'Profil & Dashboa
   if (variant === 'dashboard') {
     return (
       <header className="dashboard-navbar" aria-label="Dashboard navigation">
-        <Link className="home-logo" to="/home" aria-label="Coding Study home">
+        <Link className="home-logo" to="/home" aria-label="Kembali ke beranda utama">
           <span className="brand-mark" aria-hidden="true">
             CS
           </span>
