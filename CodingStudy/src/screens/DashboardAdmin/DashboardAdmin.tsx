@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
 import type { AppUser } from '../../types/user'
+import CategoryManagementScreen from '../CategoryManagement/CategoryManagementScreen'
 
 type DashboardAdminProps = {
   user?: AppUser | null
@@ -11,7 +13,7 @@ type DashboardAdminProps = {
 type NavItem = {
   label: string
   icon: string
-  active?: boolean
+  path: string
 }
 
 type NavSection = {
@@ -22,23 +24,25 @@ type NavSection = {
 const adminNavSections: NavSection[] = [
   {
     title: 'Workspace',
-    items: [{ label: 'Dashboard', icon: 'DB', active: true }],
+    items: [{ label: 'Dashboard', icon: 'DB', path: '/dashboard' }],
   },
   {
     title: 'Manajemen',
     items: [
-      { label: 'User', icon: 'US' },
-      { label: 'Kelas', icon: 'KL' },
+      { label: 'User', icon: 'US', path: '/dashboard/users' },
+      { label: 'Kategori', icon: 'KT', path: '/dashboard/categories' },
     ],
   },
   {
     title: 'Akun',
-    items: [{ label: 'Pengaturan', icon: 'PG' }],
+    items: [{ label: 'Pengaturan', icon: 'PG', path: '/dashboard/settings' }],
   },
 ]
 
 function DashboardAdmin({ user, onLogout }: DashboardAdminProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <main className="mentor-dashboard-page">
@@ -57,9 +61,10 @@ function DashboardAdmin({ user, onLogout }: DashboardAdminProps) {
               <nav className="student-dashboard-nav" aria-label={section.title}>
                 {section.items.map((item) => (
                   <button
-                    className={`mentor-dashboard-nav-item ${item.active ? 'is-active' : ''}`}
+                    className={`mentor-dashboard-nav-item ${location.pathname === item.path ? 'is-active' : ''}`}
                     type="button"
                     key={item.label}
+                    onClick={() => navigate(item.path)}
                   >
                     <span className="mentor-dashboard-nav-icon">{item.icon}</span>
                     <span className="mentor-dashboard-nav-label">{item.label}</span>
@@ -82,9 +87,13 @@ function DashboardAdmin({ user, onLogout }: DashboardAdminProps) {
         <div className="mentor-dashboard-main">
           <Navbar user={user} onLogout={onLogout} variant="dashboard" title="Dashboard Admin" />
 
-          <section className="mentor-dashboard-empty-grid" aria-label="Area dashboard admin kosong">
-            <div className="mentor-dashboard-empty-bubble" aria-hidden="true" />
-          </section>
+          {location.pathname === '/dashboard/categories' ? (
+            <CategoryManagementScreen embedded />
+          ) : (
+            <section className="mentor-dashboard-empty-grid" aria-label="Area dashboard admin kosong">
+              <div className="mentor-dashboard-empty-bubble" aria-hidden="true" />
+            </section>
+          )}
         </div>
       </div>
 

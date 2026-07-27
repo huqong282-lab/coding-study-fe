@@ -148,8 +148,6 @@ function AppNavigator({
         element={
           !isAuthenticated ? (
             <Navigate to="/login" replace />
-          ) : isAdmin ? (
-            <Navigate to="/dashboard" replace />
           ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
@@ -181,6 +179,18 @@ function AppNavigator({
               selectedProgrammingLanguages={selectedProgrammingLanguages}
               onLogout={handleLogout}
             />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/categories"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : isAdmin ? (
+            <DashboardAdmin user={currentUser} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/dashboard" replace />
           )
         }
       />
