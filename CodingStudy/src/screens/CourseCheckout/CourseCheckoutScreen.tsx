@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
 import type { AppUser, Language } from '../../types/user'
 import { useCourse } from '../../hooks/useCourse'
+import { createCheckoutPayment } from '../../services/paymentServices'
 
 type CourseCheckoutScreenProps = {
   language: Language
   user?: AppUser | null
+  accessToken: string
   onLogout: () => void
 }
 
@@ -86,11 +89,13 @@ type BenefitCard = {
   icon: string
 }
 
-function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreenProps) {
+function CourseCheckoutScreen({ language, user, accessToken, onLogout }: CourseCheckoutScreenProps) {
   const navigate = useNavigate()
   const params = useParams()
   const text = copy[language]
   const { course, isLoading, error } = useCourse(params.courseId)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [checkoutError, setCheckoutError] = useState('')
 
   if (isLoading) {
     return (
@@ -130,6 +135,34 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
   const serviceFee = '— Rp 0'
   const totalTransfer = isFree ? 'Rp 1.264.537' : 'Rp 1.264.537'
   const totalPay = isFree ? 'Rp 1.264.537' : 'Rp 1.264.537'
+
+  async function handleCheckout() {
+    if (!course) {
+      return
+    }
+
+    if (!accessToken) {
+      setCheckoutError('Kamu harus login terlebih dahulu untuk melanjutkan pembayaran.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setCheckoutError('')
+
+    try {
+      const result = await createCheckoutPayment({ classId: course.id }, accessToken)
+
+      if (!result.redirectUrl) {
+        throw new Error('Redirect URL tidak tersedia dari server')
+      }
+
+      window.location.assign(result.redirectUrl)
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : 'Gagal memproses pembayaran'
+      setCheckoutError(message)
+      setIsSubmitting(false)
+    }
+  }
 
   const selectedClassStats = [
     { label: language === 'id' ? 'Frontend Development' : 'Frontend Development', value: course.languageName },
@@ -452,8 +485,14 @@ function CourseCheckoutScreen({ language, user, onLogout }: CourseCheckoutScreen
                 </span>
               </p>
 
-              <button className="btn btn-primary course-checkout-action" type="button" onClick={() => navigate(`/courses/${course.id}/payment-complete`)}>
-                {text.payNow}
+              {checkoutError ? (
+                <p className="course-checkout-note" role="alert">
+                  {checkoutError}
+                </p>
+              ) : null}
+
+              <button className="btn btn-primary course-checkout-action" type="button" onClick={handleCheckout} disabled={isSubmitting}>
+                {isSubmitting ? 'Memproses...' : text.payNow}
               </button>
 
               <p className="course-checkout-security">
