@@ -245,7 +245,7 @@ function AppNavigator({
           shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
-            <CourseCheckoutScreen language={language} user={currentUser} onLogout={handleLogout} />
+            <CourseCheckoutScreen language={language} user={currentUser} accessToken={accessToken} onLogout={handleLogout} />
           )
         }
       />
