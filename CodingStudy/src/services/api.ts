@@ -37,6 +37,10 @@ export class ApiError extends Error {
 
 let refreshInFlight: Promise<string | null> | null = null
 
+function apiUrl(path: string) {
+  return `${env.apiBaseUrl}/api${path}`
+}
+
 async function refreshAccessToken() {
   const storedSession = readStoredAuthSession()
   if (!storedSession?.refreshToken) {
@@ -45,7 +49,7 @@ async function refreshAccessToken() {
 
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
-      const response = await fetch(`${env.apiBaseUrl}/auth/refresh-token`, {
+      const response = await fetch(apiUrl('/auth/refresh-token'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +87,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}) {
     headers.set('Authorization', `Bearer ${options.token}`)
   }
 
-  const response = await fetch(`${env.apiBaseUrl}${path}`, {
+  const response = await fetch(apiUrl(path), {
     ...options,
     headers,
   })

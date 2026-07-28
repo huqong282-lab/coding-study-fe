@@ -1,5 +1,13 @@
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+const defaultBaseUrl = 'https://coding-study-be-ten.vercel.app'
+
+function normalizeBaseUrl(value?: string) {
+  if (!value) {
+    return defaultBaseUrl
+  }
+
+  return value.replace(/\/api\/?$/, '').replace(/\/+$/, '') || defaultBaseUrl
+}
 
 export const env = {
-  apiBaseUrl: apiBaseUrl || 'http://localhost:3000/api',
+  apiBaseUrl: normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL?.trim()),
 }
