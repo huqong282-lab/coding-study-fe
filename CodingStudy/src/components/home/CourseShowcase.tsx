@@ -129,16 +129,16 @@ function CourseShowcase({
 
           <div className="home-course-filters" aria-label="Pilih topik kursus">
             <button className={activeTopic === 'all' ? 'is-active' : ''} type="button" onClick={onOpenAllTopic}>
-              Semua
+              Semua Jalur
             </button>
-            {learningLanguages.map((languageId) => (
+            {learningLanguages.map((trackId) => (
               <button
-                className={activeTopic === languageId ? 'is-active' : ''}
-                key={languageId}
+                className={activeTopic === trackId ? 'is-active' : ''}
+                key={trackId}
                 type="button"
-                onClick={() => onSelectTopic(languageId)}
+                onClick={() => onSelectTopic(trackId)}
               >
-                {getLanguageLabel(languageId)}
+                {getLanguageLabel(trackId)}
               </button>
             ))}
             <button
@@ -147,14 +147,14 @@ function CourseShowcase({
               onClick={onShowInterestPanel}
               aria-expanded={isInterestPanelOpen}
             >
-              {isInterestPanelOpen ? 'Sembunyikan' : 'Tambah Minat'}
+              {isInterestPanelOpen ? 'Sembunyikan' : 'Jalur Lainnya'}
             </button>
           </div>
         </div>
       </div>
 
       {isInterestPanelOpen && (
-        <div className="home-interest-panel" aria-label="Tambah minat bahasa pemrograman">
+        <div className="home-interest-panel" aria-label="Tambah minat jalur kelas">
           {languageOptions.map((item) => {
             const isSelected = learningLanguages.includes(item.id)
 
