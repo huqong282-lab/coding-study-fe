@@ -2,12 +2,27 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CourseDetailScreen from '../screens/CourseDetail/CourseDetailScreen'
 import CourseCheckoutScreen from '../screens/CourseCheckout/CourseCheckoutScreen'
 import CourseLearningScreen from '../screens/CourseLearning/CourseLearningScreen'
-import ClassesScreen from '../screens/Classes/ClassesFilterScreen'
+import AllCoursesScreen from '../screens/Classes/AllCoursesScreen'
+import DashboardAdmin from '../screens/DashboardAdmin/DashboardAdmin'
 import DashboardMentor from '../screens/DashboardMentor/DashboardMentor'
 import DashboardStudent from '../screens/DashboardStudent/DashboardStudent'
+import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCreateScreen'
+import MentorModuleManagementScreen from '../screens/MentorModuleManagement/MentorModuleManagementScreen'
+import PaymentCompleteScreen from '../screens/PaymentComplete/PaymentCompleteScreen'
+import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
+import NotFoundScreen from '../screens/NotFound/NotFoundScreen'
+import {
+  ComingSoonClassScreen,
+  ForbiddenScreen,
+  ForumEmptyScreen,
+  InternalServerErrorScreen,
+  MaintenanceScreen,
+  UnauthorizedScreen,
+} from '../screens/SystemStates/SystemStateScreens'
+import OtpVerificationScreen from '../screens/OtpVerification/OtpVerificationScreen'
 import type { Course } from '../types/product'
 import type { AppFlowController } from '../types/user'
 
@@ -21,6 +36,7 @@ function AppNavigator({
   hasCompletedLanguageSelection,
   selectedProgrammingLanguages,
   currentUser,
+  accessToken,
   onboardingCategories,
   isOnboardingLoading,
   onboardingError,
@@ -33,12 +49,20 @@ function AppNavigator({
   handleLogin,
   handleRegister,
   handleContinueLanguageSelection: completeLanguageSelection,
-  handleSkipLanguageSelection,
   handleLogout,
 }: AppNavigatorProps) {
   const navigate = useNavigate()
-  const shouldCompleteLanguageSelection = isAuthenticated && !hasCompletedLanguageSelection
-  const postAuthRedirectPath = shouldCompleteLanguageSelection ? '/language-selection' : '/home'
+  const currentUserRole = currentUser?.role?.toLowerCase()
+  const isAdmin = currentUserRole === 'admin'
+  const isMentor = currentUserRole === 'mentor'
+  const shouldCompleteLanguageSelection =
+    isAuthenticated && !isAdmin && !hasCompletedLanguageSelection
+  const authenticatedRedirectPath = isAdmin ? '/dashboard' : '/home'
+  const postAuthRedirectPath = !isAuthenticated
+    ? '/login'
+    : shouldCompleteLanguageSelection
+      ? '/language-selection'
+      : authenticatedRedirectPath
 
   function handleOpenCourse(course: Course) {
     navigate(`/courses/${course.id}`)
@@ -97,6 +121,11 @@ function AppNavigator({
         }
       />
       <Route
+        path="/forgot-password"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordScreen />}
+      />
+      <Route path="/verify-otp" element={<OtpVerificationScreen />} />
+      <Route
         path="/language-selection"
         element={
           shouldCompleteLanguageSelection ? (
@@ -106,19 +135,20 @@ function AppNavigator({
               categories={onboardingCategories}
               onToggleLanguage={toggleProgrammingLanguage}
               onContinue={handleContinueLanguageSelection}
-              onSkip={handleSkipLanguageSelection}
               isLoading={isOnboardingLoading}
               error={onboardingError}
             />
           ) : (
-            <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
+            <Navigate to={isAuthenticated ? postAuthRedirectPath : '/login'} replace />
           )
         }
       />
       <Route
         path="/home"
         element={
-          shouldCompleteLanguageSelection ? (
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
             <HomeScreen
@@ -135,9 +165,13 @@ function AppNavigator({
       <Route
         path="/dashboard"
         element={
-          shouldCompleteLanguageSelection ? (
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
-          ) : currentUser?.role === 'mentor' ? (
+          ) : isAdmin ? (
+            <DashboardAdmin user={currentUser} onLogout={handleLogout} />
+          ) : isMentor ? (
             <DashboardMentor user={currentUser} onLogout={handleLogout} />
           ) : (
             <DashboardStudent
@@ -149,12 +183,59 @@ function AppNavigator({
         }
       />
       <Route
+        path="/dashboard/categories"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : isAdmin ? (
+            <DashboardAdmin user={currentUser} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/classes/new"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : isMentor ? (
+            <MentorClassCreateScreen
+              language={language}
+              user={currentUser}
+              accessToken={accessToken}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard/classes/:courseId/modules"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : isMentor ? (
+            <MentorModuleManagementScreen user={currentUser} accessToken={accessToken} onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        }
+      />
+      <Route
         path="/classes"
         element={
-          shouldCompleteLanguageSelection ? (
+          !isAuthenticated ? (
+            <Navigate to="/login" replace />
+          ) : shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
-            <ClassesScreen user={currentUser} onLogout={handleLogout} onOpenCourse={handleOpenCourse} />
+            <AllCoursesScreen user={currentUser} onLogout={handleLogout} onOpenCourse={handleOpenCourse} />
           )
         }
       />
@@ -174,7 +255,17 @@ function AppNavigator({
           shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
           ) : (
-            <CourseCheckoutScreen language={language} user={currentUser} onLogout={handleLogout} />
+            <CourseCheckoutScreen language={language} user={currentUser} accessToken={accessToken} onLogout={handleLogout} />
+          )
+        }
+      />
+      <Route
+        path="/courses/:courseId/payment-complete"
+        element={
+          shouldCompleteLanguageSelection ? (
+            <Navigate to="/language-selection" replace />
+          ) : (
+            <PaymentCompleteScreen language={language} user={currentUser} onLogout={handleLogout} />
           )
         }
       />
@@ -188,7 +279,14 @@ function AppNavigator({
           )
         }
       />
-      <Route path="*" element={<Navigate to={postAuthRedirectPath} replace />} />
+      <Route path="/404" element={<NotFoundScreen />} />
+      <Route path="/500" element={<InternalServerErrorScreen />} />
+      <Route path="/maintenance" element={<MaintenanceScreen />} />
+      <Route path="/403" element={<ForbiddenScreen />} />
+      <Route path="/unauthorized" element={<UnauthorizedScreen />} />
+      <Route path="/forum-empty" element={<ForumEmptyScreen />} />
+      <Route path="/coming-soon" element={<ComingSoonClassScreen />} />
+      <Route path="*" element={<NotFoundScreen />} />
     </Routes>
   )
 }

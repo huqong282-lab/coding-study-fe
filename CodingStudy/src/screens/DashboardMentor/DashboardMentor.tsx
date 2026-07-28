@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
+import { listCourses, type BackendCourse } from '../../services/courseServices'
 import type { AppUser } from '../../types/user'
 
 type DashboardMentorProps = {
@@ -7,43 +10,25 @@ type DashboardMentorProps = {
   onLogout?: () => void
 }
 
-type MenteeProgress = {
-  name: string
-  track: string
-  progress: number
-  status: string
-  tone: 'smooth' | 'complete' | 'stuck'
+type NavItem = {
+  label: string
+  icon: string
+  active?: boolean
 }
 
-type ScheduleItem = {
-  time: string
+type NavSection = {
   title: string
-  mentee: string
-  action: string
+  items: NavItem[]
 }
 
-type AssignmentItem = {
-  mentee: string
-  title: string
-  meta: string
-}
-
-const mentorNavSections = [
+const mentorNavSections: NavSection[] = [
   {
     title: 'Workspace',
-    items: [
-      { label: 'Dashboard', icon: 'DB', active: true },
-      { label: 'Daftar Mentee', icon: 'MT', badge: '4' },
-      { label: 'Kalender', icon: 'KL' },
-      { label: 'Tugas & Nilai', icon: 'TN', badge: '3' },
-    ],
+    items: [{ label: 'Dashboard', icon: 'DB', active: true }],
   },
   {
     title: 'Konten',
-    items: [
-      { label: 'Materi', icon: 'MR' },
-      { label: 'Pesan', icon: 'PS', badge: '5' },
-    ],
+    items: [{ label: 'Kelas', icon: 'KL' }],
   },
   {
     title: 'Akun',
@@ -51,64 +36,104 @@ const mentorNavSections = [
   },
 ]
 
-const summaryCards = [
-  { label: 'Mentee Aktif', value: '4', unit: 'Mentee', accent: 'violet', detail: '+1 dari bulan lalu' },
-  { label: 'Jam Mentoring', value: '12', unit: 'Jam', accent: 'sky', detail: '8 sesi selesai' },
-  { label: 'Tugas Pending', value: '3', unit: 'Tugas', accent: 'rose', detail: 'Butuh review hari ini' },
-  { label: 'Rating Mentor', value: '4.9', unit: '/5', accent: 'emerald', detail: 'Dari 26 ulasan' },
-]
+const currencyFormatter = new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0,
+})
 
-const scheduleItems: ScheduleItem[] = [
-  { time: '14:00', title: 'Sesi 1-on-1', mentee: 'Andi', action: 'Masuk Zoom' },
-  { time: '16:30', title: 'Evaluasi Kelompok 2', mentee: 'Susi, Budi', action: 'Lihat Agenda' },
-  { time: '19:00', title: 'Office Hour React', mentee: 'Batch Frontend', action: 'Buka Room' },
-]
+function formatPrice(price: string) {
+  const numericPrice = Number(price)
 
-const menteeProgress: MenteeProgress[] = [
-  { name: 'Andi', track: 'React Fundamental', progress: 60, status: 'Lancar', tone: 'smooth' },
-  { name: 'Susi', track: 'TypeScript Web Apps', progress: 100, status: 'Lulus', tone: 'complete' },
-  { name: 'Budi', track: 'Backend API Node.js', progress: 30, status: 'Stuck', tone: 'stuck' },
-  { name: 'Nadia', track: 'UI Engineering', progress: 78, status: 'Siap Review', tone: 'smooth' },
-]
+  if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+    return 'Gratis'
+  }
 
-const assignmentInbox: AssignmentItem[] = [
-  { mentee: 'Budi', title: 'Tugas Modul 2', meta: 'Masuk 24 menit lalu' },
-  { mentee: 'Andi', title: 'Revisi Proposal Project', meta: 'Deadline malam ini' },
-  { mentee: 'Nadia', title: 'Quiz Komponen React', meta: 'Menunggu nilai' },
-]
+  return currencyFormatter.format(numericPrice)
+}
 
-const latestMessages = [
-  {
-    sender: 'Susi',
-    excerpt: 'Kak, link tugasnya sudah saya update. Mohon dicek kalau sempat ya.',
-    time: '10 menit lalu',
-  },
-  {
-    sender: 'Budi',
-    excerpt: 'Saya stuck waktu setup database lokal untuk modul API.',
-    time: '38 menit lalu',
-  },
-]
+function formatDate(dateValue: string) {
+  return new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+  }).format(new Date(dateValue))
+}
 
-const materialQueue = [
-  { title: 'React State Management', status: 'Siap publish', count: '6 lesson' },
-  { title: 'API Authentication', status: 'Draft review', count: '4 lesson' },
-]
+function getCourseStatusLabel(status: BackendCourse['status']) {
+  return status === 'PUBLISHED' ? 'Published' : 'Draft'
+}
 
 function DashboardMentor({ user, onLogout }: DashboardMentorProps) {
-  const firstName = user?.name.trim().split(' ')[0] || 'Mentor'
-  const mentorInitials = user
-    ? user.name
-        .split(' ')
-        .map((part) => part.charAt(0))
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
-    : 'MT'
+  const navigate = useNavigate()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [courses, setCourses] = useState<BackendCourse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadMentorCourses() {
+      if (!user?.id) {
+        if (isActive) {
+          setCourses([])
+          setIsLoading(false)
+        }
+        return
+      }
+
+      setIsLoading(true)
+      setError('')
+
+      try {
+        const result = await listCourses({
+          mentorId: user.id,
+          limit: 100,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        })
+
+        if (!isActive) {
+          return
+        }
+
+        setCourses(result.courses)
+      } catch (requestError) {
+        if (!isActive) {
+          return
+        }
+
+        setError(requestError instanceof Error ? requestError.message : 'Gagal memuat kelas mentor')
+        setCourses([])
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadMentorCourses()
+
+    return () => {
+      isActive = false
+    }
+  }, [user?.id])
+
+  const summary = useMemo(() => {
+    const publishedCount = courses.filter((course) => course.status === 'PUBLISHED').length
+    const draftCount = courses.filter((course) => course.status === 'DRAFT').length
+
+    return {
+      total: courses.length,
+      publishedCount,
+      draftCount,
+    }
+  }, [courses])
+
+  const hasCourses = courses.length > 0
 
   return (
     <main className="mentor-dashboard-page">
-      <div className="mentor-dashboard-layout">
+      <div className={`mentor-dashboard-layout ${isSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
         <aside className="mentor-dashboard-sidebar">
           <div className="student-dashboard-brand">
             <span className="student-dashboard-brand-mark">CS</span>
@@ -120,7 +145,6 @@ function DashboardMentor({ user, onLogout }: DashboardMentorProps) {
 
           {mentorNavSections.map((section) => (
             <div className="student-dashboard-nav-group" key={section.title}>
-              <p className="student-dashboard-nav-title">{section.title}</p>
               <nav className="student-dashboard-nav" aria-label={section.title}>
                 {section.items.map((item) => (
                   <button
@@ -129,202 +153,167 @@ function DashboardMentor({ user, onLogout }: DashboardMentorProps) {
                     key={item.label}
                   >
                     <span className="mentor-dashboard-nav-icon">{item.icon}</span>
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
+                    <span className="mentor-dashboard-nav-label">{item.label}</span>
                   </button>
                 ))}
               </nav>
             </div>
           ))}
 
-          <div className="mentor-dashboard-sidebar-card">
-            <span>Live mentoring</span>
-            <strong>2 sesi tersisa hari ini</strong>
-            <button type="button">Buka Jadwal</button>
-          </div>
-
-          <div className="student-dashboard-sidebar-footer">
-            <div className="student-dashboard-user">
-              <span className="student-dashboard-user-avatar">{mentorInitials}</span>
-              <div>
-                <strong>{firstName}</strong>
-                <p>Mentor</p>
-              </div>
-            </div>
-
-            <button className="student-dashboard-logout" type="button" onClick={onLogout}>
-              Logout
-            </button>
-          </div>
+          <button
+            className="mentor-dashboard-sidebar-toggle"
+            type="button"
+            aria-label={isSidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+            onClick={() => setIsSidebarCollapsed((current) => !current)}
+          >
+            {isSidebarCollapsed ? '›' : '‹'}
+          </button>
         </aside>
 
         <div className="mentor-dashboard-main">
           <Navbar user={user} onLogout={onLogout} variant="dashboard" title="Dashboard Mentor" />
 
-          <section className="mentor-dashboard-hero">
+          <section className="mentor-dashboard-hero" aria-label="Ringkasan kelas mentor">
             <div>
-              <p>Ringkasan Bulan Ini</p>
-              <h2>Selamat datang kembali, {firstName}!</h2>
+              <p>Kelola kelas</p>
+              <h2>Kelas yang kamu buat</h2>
               <span>
-                Pantau aktivitas mentoring, progres mentee, tugas pending, dan percakapan penting dari satu tempat.
+                Lihat semua kelas yang sudah pernah kamu buat, cek status publikasinya, dan buat
+                kelas baru langsung dari dashboard ini.
               </span>
             </div>
+
             <div className="mentor-dashboard-hero-action">
-              <button type="button">Buka Slot Waktu</button>
-              <button type="button">Buat Materi</button>
+              <button type="button" onClick={() => navigate('/dashboard/classes/new')}>
+                Buat Kelas
+              </button>
             </div>
           </section>
 
-          <section className="mentor-dashboard-summary-grid" aria-label="Ringkasan mentor">
-            {summaryCards.map((card) => (
-              <article className={`mentor-dashboard-summary-card is-${card.accent}`} key={card.label}>
-                <p>{card.label}</p>
-                <div>
-                  <strong>{card.value}</strong>
-                  <span>{card.unit}</span>
-                </div>
-                <small>{card.detail}</small>
-              </article>
-            ))}
+          <section className="mentor-dashboard-summary-grid" aria-label="Ringkasan kelas mentor">
+            <article className="mentor-dashboard-summary-card is-violet">
+              <p>Total Kelas</p>
+              <div>
+                <strong>{summary.total}</strong>
+                <span>kelas</span>
+              </div>
+              <small>Kelas yang tersimpan untuk akun mentor ini.</small>
+            </article>
+            <article className="mentor-dashboard-summary-card is-sky">
+              <p>Published</p>
+              <div>
+                <strong>{summary.publishedCount}</strong>
+                <span>kelas</span>
+              </div>
+              <small>Kelas yang sudah siap dilihat siswa.</small>
+            </article>
+            <article className="mentor-dashboard-summary-card is-rose">
+              <p>Draft</p>
+              <div>
+                <strong>{summary.draftCount}</strong>
+                <span>kelas</span>
+              </div>
+              <small>Kelas yang masih bisa kamu edit sebelum rilis.</small>
+            </article>
+            <article className="mentor-dashboard-summary-card is-emerald">
+              <p>Status akun</p>
+              <div>
+                <strong>{user?.role ?? 'MENTOR'}</strong>
+              </div>
+              <small>Role login aktif saat ini.</small>
+            </article>
           </section>
 
-          <div className="mentor-dashboard-content-grid">
-            <section className="mentor-dashboard-panel mentor-dashboard-schedule-panel" aria-labelledby="mentor-schedule-title">
+          <section className="mentor-dashboard-content-grid" aria-label="Daftar kelas mentor">
+            <div className="mentor-dashboard-panel">
               <div className="mentor-dashboard-panel-head">
                 <div>
-                  <p>Jadwal Hari Ini</p>
-                  <h2 id="mentor-schedule-title">Sesi mentoring</h2>
+                  <p>Daftar Kelas</p>
+                  <h2>Kelas yang pernah kamu buat</h2>
                 </div>
-                <button type="button">Tambah Slot</button>
+                <button type="button" onClick={() => navigate('/dashboard/classes/new')}>
+                  Buat Kelas
+                </button>
               </div>
 
-              <div className="mentor-dashboard-schedule-list">
-                {scheduleItems.map((item) => (
-                  <article className="mentor-dashboard-schedule-item" key={`${item.time}-${item.title}`}>
-                    <time>{item.time}</time>
-                    <div>
-                      <strong>{item.title}</strong>
-                      <span>{item.mentee}</span>
-                    </div>
-                    <button type="button">{item.action}</button>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="mentor-dashboard-panel" aria-labelledby="mentee-progress-title">
-              <div className="mentor-dashboard-panel-head">
-                <div>
-                  <p>Perkembangan Mentee</p>
-                  <h2 id="mentee-progress-title">Progress aktif</h2>
+              {isLoading ? (
+                <div className="mentor-dashboard-empty-grid">
+                  <div className="mentor-dashboard-empty-bubble" />
+                  <div className="mentor-dashboard-empty-content">
+                    <strong>Memuat kelas mentor...</strong>
+                    <span>Mohon tunggu sebentar saat kami mengambil data kelas yang sudah dibuat.</span>
+                  </div>
                 </div>
-                <button type="button">Lihat Semua</button>
-              </div>
-
-              <div className="mentor-dashboard-progress-list">
-                {menteeProgress.map((mentee) => (
-                  <article className="mentor-dashboard-progress-item" key={mentee.name}>
-                    <div>
-                      <strong>{mentee.name}</strong>
-                      <span>{mentee.track}</span>
-                    </div>
-                    <div className="mentor-dashboard-progress-track" aria-label={`${mentee.progress}% progress`}>
-                      <span className={`is-${mentee.tone}`} style={{ width: `${mentee.progress}%` }} />
-                    </div>
-                    <small>
-                      {mentee.progress}% · {mentee.status}
-                    </small>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="mentor-dashboard-panel" aria-labelledby="assignment-inbox-title">
-              <div className="mentor-dashboard-panel-head">
-                <div>
-                  <p>Kotak Masuk Tugas</p>
-                  <h2 id="assignment-inbox-title">Review pending</h2>
+              ) : error ? (
+                <div className="mentor-dashboard-empty-grid">
+                  <div className="mentor-dashboard-empty-bubble" />
+                  <div className="mentor-dashboard-empty-content">
+                    <strong>Gagal memuat kelas</strong>
+                    <span>{error}</span>
+                    <button type="button" onClick={() => window.location.reload()}>
+                      Muat Ulang
+                    </button>
+                  </div>
                 </div>
-                <button type="button">Urutkan</button>
-              </div>
-
-              <div className="mentor-dashboard-task-list">
-                {assignmentInbox.map((assignment) => (
-                  <article className="mentor-dashboard-task-item" key={`${assignment.mentee}-${assignment.title}`}>
-                    <div>
-                      <strong>{assignment.mentee}</strong>
-                      <span>{assignment.title}</span>
-                      <small>{assignment.meta}</small>
-                    </div>
-                    <button type="button">Periksa & Nilai</button>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="mentor-dashboard-panel mentor-dashboard-message-panel" aria-labelledby="latest-message-title">
-              <div className="mentor-dashboard-panel-head">
-                <div>
-                  <p>Pesan Terbaru</p>
-                  <h2 id="latest-message-title">Butuh balasan</h2>
+              ) : !hasCourses ? (
+                <div className="mentor-dashboard-empty-grid">
+                  <div className="mentor-dashboard-empty-bubble" />
+                  <div className="mentor-dashboard-empty-content">
+                    <strong>Belum ada kelas yang dibuat</strong>
+                    <span>
+                      Mulai dari satu kelas dulu. Setelah kelas dibuat, data kelas akan tampil di
+                      sini dan bisa kamu pantau dari dashboard ini.
+                    </span>
+                    <button type="button" onClick={() => navigate('/dashboard/classes/new')}>
+                      Buat Kelas
+                    </button>
+                  </div>
                 </div>
-                <button type="button">Buka Pesan</button>
-              </div>
+              ) : (
+                <div className="mentor-dashboard-course-grid">
+                  {courses.map((course) => (
+                    <article className="mentor-dashboard-course-card" key={course.id}>
+                      <div className="mentor-dashboard-course-card__head">
+                        <div>
+                          <p>{getCourseStatusLabel(course.status)}</p>
+                          <h3>{course.title}</h3>
+                        </div>
+                        <span className={`mentor-dashboard-course-badge is-${course.status.toLowerCase()}`}>
+                          {course.status}
+                        </span>
+                      </div>
 
-              <div className="mentor-dashboard-message-list">
-                {latestMessages.map((message) => (
-                  <article className="mentor-dashboard-message-item" key={message.sender}>
-                    <span>{message.sender.charAt(0)}</span>
-                    <div>
-                      <strong>{message.sender}</strong>
-                      <p>{message.excerpt}</p>
-                      <small>{message.time}</small>
-                    </div>
-                    <button type="button">Balas</button>
-                  </article>
-                ))}
-              </div>
-            </section>
+                      <p className="mentor-dashboard-course-description">{course.description}</p>
 
-            <section className="mentor-dashboard-panel mentor-dashboard-material-panel" aria-labelledby="mentor-material-title">
-              <div className="mentor-dashboard-panel-head">
-                <div>
-                  <p>Materi</p>
-                  <h2 id="mentor-material-title">Antrian konten</h2>
+                      <div className="mentor-dashboard-course-meta">
+                        <span>{formatPrice(course.price)}</span>
+                        <span>{formatDate(course.createdAt)}</span>
+                      </div>
+
+                      <div className="mentor-dashboard-course-footer">
+                        <small>Mentor: {course.mentor?.name ?? user?.name ?? 'Mentor'}</small>
+                        <div className="mentor-dashboard-course-actions">
+                          <button type="button" onClick={() => navigate(`/courses/${course.id}`)}>
+                            Lihat Detail
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(`/dashboard/classes/${course.id}/modules`, {
+                                state: { courseTitle: course.title },
+                              })
+                            }
+                          >
+                            Management Module
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-                <button type="button">Kelola</button>
-              </div>
-
-              <div className="mentor-dashboard-material-list">
-                {materialQueue.map((material) => (
-                  <article key={material.title}>
-                    <div>
-                      <strong>{material.title}</strong>
-                      <span>{material.count}</span>
-                    </div>
-                    <small>{material.status}</small>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="mentor-dashboard-panel mentor-dashboard-calendar-panel" aria-labelledby="mentor-calendar-title">
-              <div className="mentor-dashboard-panel-head">
-                <div>
-                  <p>Kalender</p>
-                  <h2 id="mentor-calendar-title">Minggu ini</h2>
-                </div>
-              </div>
-
-              <div className="mentor-dashboard-calendar-grid" aria-label="Jadwal minggu ini">
-                {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((day, index) => (
-                  <span className={index === 2 || index === 4 ? 'is-busy' : ''} key={day}>
-                    {day}
-                  </span>
-                ))}
-              </div>
-            </section>
-          </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 

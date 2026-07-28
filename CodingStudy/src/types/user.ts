@@ -2,8 +2,6 @@ export type Language = 'id' | 'en'
 
 export type AuthMode = 'login' | 'register'
 
-export type AppRole = 'student' | 'mentor'
-
 export type ProgrammerPosition =
   | 'frontend'
   | 'backend'
@@ -16,13 +14,13 @@ export type AppUser = {
   id: number
   name: string
   email: string
-  role?: AppRole
+  role?: string
+  onboardingCompleted?: boolean
 }
 
 export type AuthCredentials = {
   email: string
   password: string
-  role: AppRole
 }
 
 export type RegisterCredentials = {
@@ -34,6 +32,13 @@ export type RegisterCredentials = {
 export type AuthSession = {
   user: AppUser
   accessToken: string
+  refreshToken: string
+}
+
+export type OnboardingCategory = {
+  id: string
+  name: string
+  description?: string | null
 }
 
 export type AppFlowState = {
@@ -59,9 +64,8 @@ export type AppFlowActions = {
   toggleProgrammingLanguage: (languageId: string) => void
   setSelectedProgrammingLanguages: (languageIds: string[]) => void
   handleLogin: (credentials: AuthCredentials) => Promise<void>
-  handleRegister: (user: RegisterCredentials) => Promise<void>
+  handleRegister: (user: RegisterCredentials) => Promise<boolean>
   handleContinueLanguageSelection: () => Promise<boolean>
-  handleSkipLanguageSelection: () => void
   handleLogout: () => void
 }
 

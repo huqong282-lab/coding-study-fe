@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import type { AppRole } from '../../types/user'
+import { Link } from 'react-router-dom'
 
 type LoginProps = {
   language?: 'id' | 'en'
   onSwitchToRegister: () => void
-  onLogin?: (credentials: { email: string; password: string; role: AppRole }) => Promise<void> | void
+  onLogin?: (credentials: { email: string; password: string }) => Promise<void> | void
   serverError?: string
   isLoading?: boolean
 }
@@ -12,14 +12,12 @@ type LoginProps = {
 type LoginForm = {
   email: string
   password: string
-  role: AppRole | ''
   remember: boolean
 }
 
 const initialForm: LoginForm = {
   email: '',
   password: '',
-  role: '',
   remember: true,
 }
 
@@ -27,12 +25,8 @@ const loginCopy = {
   id: {
     invalidEmail: 'Masukkan email yang valid.',
     shortPassword: 'Password minimal 8 karakter.',
-    requiredRole: 'Pilih masuk sebagai mentor atau murid.',
     emailPlaceholder: 'nama@email.com',
     passwordPlaceholder: 'Minimal 8 karakter',
-    roleLabel: 'Masuk sebagai',
-    student: 'Murid',
-    mentor: 'Mentor',
     hide: 'Hide',
     show: 'Show',
     remember: 'Ingat saya',
@@ -46,12 +40,8 @@ const loginCopy = {
   en: {
     invalidEmail: 'Enter a valid email.',
     shortPassword: 'Password must be at least 8 characters.',
-    requiredRole: 'Choose whether to sign in as mentor or student.',
     emailPlaceholder: 'name@email.com',
     passwordPlaceholder: 'At least 8 characters',
-    roleLabel: 'Sign in as',
-    student: 'Student',
-    mentor: 'Mentor',
     hide: 'Hide',
     show: 'Show',
     remember: 'Remember me',
@@ -87,10 +77,6 @@ function Login({
       nextErrors.password = copy.shortPassword
     }
 
-    if (!form.role) {
-      nextErrors.role = copy.requiredRole
-    }
-
     return nextErrors
   }, [copy, form])
 
@@ -106,14 +92,6 @@ function Login({
     setSubmitted(false)
   }
 
-  function updateRole(role: AppRole) {
-    setForm((currentForm) => ({
-      ...currentForm,
-      role,
-    }))
-    setSubmitted(false)
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
@@ -122,7 +100,6 @@ function Login({
       await onLogin?.({
         email: form.email.trim(),
         password: form.password,
-        role: form.role,
       })
     }
   }
@@ -168,31 +145,6 @@ function Login({
         {errors.password && <small className="text-sm text-rose-300">{errors.password}</small>}
       </label>
 
-      <fieldset className="grid gap-2">
-        <legend className="text-sm font-medium text-slate-300">{copy.roleLabel}</legend>
-        <div className="grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1">
-          {[
-            { value: 'student' as AppRole, label: copy.student },
-            { value: 'mentor' as AppRole, label: copy.mentor },
-          ].map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                form.role === option.value
-                  ? 'bg-violet-500 text-white shadow-[0_12px_30px_rgba(124,92,255,0.32)]'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              onClick={() => updateRole(option.value)}
-              aria-pressed={form.role === option.value}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        {errors.role && <small className="text-sm text-rose-300">{errors.role}</small>}
-      </fieldset>
-
       <div className="flex items-center justify-between gap-4">
         <label className="flex items-center gap-3 text-sm text-slate-300">
           <input
@@ -204,9 +156,9 @@ function Login({
           />
           <span className="select-none">{copy.remember}</span>
         </label>
-        <button className="text-sm font-semibold text-violet-300 transition hover:text-violet-200" type="button">
+        <Link className="text-sm font-semibold text-violet-300 transition hover:text-violet-200" to="/forgot-password">
           {copy.forgotPassword}
-        </button>
+        </Link>
       </div>
 
       {(submitted || serverError) && (

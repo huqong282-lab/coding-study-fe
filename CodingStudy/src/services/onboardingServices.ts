@@ -1,10 +1,5 @@
 import { apiFetch } from './api'
-
-export type OnboardingCategory = {
-  id: string
-  name: string
-  description?: string | null
-}
+import type { OnboardingCategory } from '../types/user'
 
 export type CompleteOnboardingPayload = {
   categoryIds: string[]
@@ -14,14 +9,23 @@ export type CompleteOnboardingResult = {
   message: string
 }
 
+function getResponseData<T>(response: unknown): T | undefined {
+  if (response && typeof response === 'object' && 'data' in response) {
+    return (response as { data?: T }).data
+  }
+
+  return response as T
+}
+
 export async function getOnboardingCategories() {
   const response = await apiFetch<OnboardingCategory[]>('/onboarding/categories')
+  const categories = getResponseData<OnboardingCategory[]>(response)
 
-  if (!response.data) {
+  if (!categories) {
     throw new Error('Onboarding categories response is missing data')
   }
 
-  return response.data
+  return categories
 }
 
 export async function completeOnboarding(
@@ -33,10 +37,11 @@ export async function completeOnboarding(
     token,
     body: JSON.stringify(payload),
   })
+  const result = getResponseData<CompleteOnboardingResult>(response)
 
-  if (!response.data) {
+  if (!result) {
     throw new Error('Complete onboarding response is missing data')
   }
 
-  return response.data
+  return result
 }

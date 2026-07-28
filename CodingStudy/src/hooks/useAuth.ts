@@ -1,5 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as authServices from '../services/authServices'
+import {
+  authSessionClearedEvent,
+  authSessionUpdatedEvent,
+  clearStoredAuthSession,
+  readStoredAuthSession,
+  saveStoredAuthSession,
+  type StoredAuthSession,
+} from '../services/authSession'
 import type {
   AppFlowController,
   AppUser,
@@ -14,47 +22,6 @@ import { useOnboarding } from './useOnboarding'
 
 const initialLanguage: Language = 'id'
 const initialPosition: ProgrammerPosition = 'frontend'
-const authSessionKey = 'codingstudy-auth-session'
-
-type StoredAuthSession = {
-  accessToken: string
-  user: AppUser
-  hasCompletedLanguageSelection: boolean
-  selectedProgrammingLanguages: string[]
-}
-
-function readStoredAuthSession(): StoredAuthSession | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  const rawSession = window.localStorage.getItem(authSessionKey)
-  if (!rawSession) {
-    return null
-  }
-
-  try {
-    return JSON.parse(rawSession) as StoredAuthSession
-  } catch {
-    return null
-  }
-}
-
-function saveStoredAuthSession(session: StoredAuthSession) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  window.localStorage.setItem(authSessionKey, JSON.stringify(session))
-}
-
-function clearStoredAuthSession() {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  window.localStorage.removeItem(authSessionKey)
-}
 
 export function useAuth(): AppFlowController {
   const storedAuthSession = readStoredAuthSession()
@@ -68,22 +35,47 @@ export function useAuth(): AppFlowController {
   )
   const [currentUser, setCurrentUser] = useState<AppUser | null>(storedAuthSession?.user ?? null)
   const [accessToken, setAccessToken] = useState(storedAuthSession?.accessToken ?? '')
+  const [refreshToken, setRefreshToken] = useState(storedAuthSession?.refreshToken ?? '')
+  const [sessionError, setSessionError] = useState('')
 
   const loginRequest = useFetch(authServices.login)
   const registerRequest = useFetch(authServices.register)
 
+  function applyStoredSession(session: StoredAuthSession | null) {
+    if (!session) {
+      setIsAuthenticated(false)
+      setHasCompletedLanguageSelection(false)
+      setCurrentUser(null)
+      setAccessToken('')
+      setRefreshToken('')
+      setSessionError('Sesi habis, silakan login ulang')
+      return
+    }
+
+    setIsAuthenticated(Boolean(session.accessToken))
+    setHasCompletedLanguageSelection(
+      Boolean(session.user?.onboardingCompleted ?? session.hasCompletedLanguageSelection),
+    )
+    setCurrentUser(session.user ?? null)
+    setAccessToken(session.accessToken ?? '')
+    setRefreshToken(session.refreshToken ?? '')
+    setSessionError('')
+  }
+
   function persistAuthSession(
     user: AppUser | null,
     token: string,
+    refreshToken: string,
     completed: boolean,
     selectedLanguages: string[],
   ) {
-    if (!user || !token) {
+    if (!user || !token || !refreshToken) {
       return
     }
 
     saveStoredAuthSession({
       accessToken: token,
+      refreshToken,
       user: { ...user, onboardingCompleted: completed },
       hasCompletedLanguageSelection: completed,
       selectedProgrammingLanguages: selectedLanguages,
@@ -108,11 +100,35 @@ export function useAuth(): AppFlowController {
       setCurrentUser((user) =>
         user ? { ...user, onboardingCompleted: true } : user,
       )
-      persistAuthSession(currentUser, accessToken, true, selectedProgrammingLanguages)
+      persistAuthSession(
+        currentUser,
+        accessToken,
+        refreshToken,
+        true,
+        selectedProgrammingLanguages,
+      )
     },
   })
 
-  const authError = loginRequest.error || registerRequest.error
+  useEffect(() => {
+    function handleSessionUpdated() {
+      applyStoredSession(readStoredAuthSession())
+    }
+
+    function handleSessionCleared() {
+      applyStoredSession(null)
+    }
+
+    window.addEventListener(authSessionUpdatedEvent, handleSessionUpdated)
+    window.addEventListener(authSessionClearedEvent, handleSessionCleared)
+
+    return () => {
+      window.removeEventListener(authSessionUpdatedEvent, handleSessionUpdated)
+      window.removeEventListener(authSessionClearedEvent, handleSessionCleared)
+    }
+  }, [])
+
+  const authError = sessionError || loginRequest.error || registerRequest.error
   const isAuthLoading = loginRequest.isLoading || registerRequest.isLoading
 
   async function handleLogin(credentials: AuthCredentials) {
@@ -124,18 +140,22 @@ export function useAuth(): AppFlowController {
       return
     }
 
-    setCurrentUser({
-      ...result.user,
-      role: credentials.role,
-    })
+    setCurrentUser(result.user)
     setAccessToken(result.accessToken)
+    setRefreshToken(result.refreshToken)
     setIsAuthenticated(true)
     setHasCompletedLanguageSelection(Boolean(result.user.onboardingCompleted))
+    setSessionError('')
+
+    const isSameStoredUser = storedAuthSession?.user?.id === result.user.id
     persistAuthSession(
       result.user,
       result.accessToken,
+      result.refreshToken,
       Boolean(result.user.onboardingCompleted),
-      result.user.onboardingCompleted ? storedAuthSession?.selectedProgrammingLanguages ?? [] : [],
+      result.user.onboardingCompleted && isSameStoredUser
+        ? storedAuthSession?.selectedProgrammingLanguages ?? []
+        : [],
     )
   }
 
@@ -145,23 +165,21 @@ export function useAuth(): AppFlowController {
 
     const result = await registerRequest.execute(user)
     if (!result) {
-      return
+      return false
     }
 
+    setSessionError('')
     setMode('login')
-  }
-
-  function handleSkipLanguageSelection() {
-    setHasCompletedLanguageSelection(true)
-    setCurrentUser((user) => (user ? { ...user, onboardingCompleted: true } : user))
-    persistAuthSession(currentUser, accessToken, true, selectedProgrammingLanguages)
+    return true
   }
 
   function handleLogout() {
     setIsAuthenticated(false)
     setAccessToken('')
+    setRefreshToken('')
     setCurrentUser(null)
     setHasCompletedLanguageSelection(false)
+    setSessionError('')
     setMode('login')
     loginRequest.reset()
     registerRequest.reset()
@@ -191,7 +209,6 @@ export function useAuth(): AppFlowController {
     handleLogin,
     handleRegister,
     handleContinueLanguageSelection,
-    handleSkipLanguageSelection,
     handleLogout,
   }
 }

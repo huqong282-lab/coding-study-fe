@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type WheelEvent as ReactWheelEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import type { Course } from '../../types/product'
 
 type CourseShowcaseProps = {
@@ -35,7 +35,28 @@ function CourseShowcase({
   getLanguageLabel,
 }: CourseShowcaseProps) {
   const railRef = useRef<HTMLDivElement>(null)
-  const carouselCourses = useMemo(() => [...courses, ...courses, ...courses], [courses])
+  const [searchQuery, setSearchQuery] = useState('')
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase()
+  const visibleCourses = useMemo(() => {
+    if (!normalizedSearchQuery) {
+      return courses
+    }
+
+    return courses.filter((course) => {
+      const searchableText = [
+        course.title,
+        course.mentor,
+        course.languageName,
+        course.level,
+        course.description,
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      return searchableText.includes(normalizedSearchQuery)
+    })
+  }, [courses, normalizedSearchQuery])
+  const carouselCourses = useMemo(() => [...visibleCourses, ...visibleCourses, ...visibleCourses], [visibleCourses])
 
   useEffect(() => {
     const rail = railRef.current
@@ -46,7 +67,7 @@ function CourseShowcase({
 
     const setWidth = rail.scrollWidth / 3
     rail.scrollLeft = setWidth
-  }, [courses])
+  }, [visibleCourses])
 
   function handleWheel(event: ReactWheelEvent<HTMLDivElement>) {
     const rail = railRef.current
@@ -67,6 +88,14 @@ function CourseShowcase({
     onOpenCourse?.(course)
   }
 
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+  }
+
+  function resetSearch() {
+    setSearchQuery('')
+  }
+
   return (
     <section className="home-section home-section--courses" id="classes" aria-labelledby="home-course-title">
       <div className="home-section__header">
@@ -78,6 +107,17 @@ function CourseShowcase({
         </div>
 
         <div className="home-course-controls">
+          <form className="home-course-search" role="search" onSubmit={handleSearchSubmit}>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Cari kelas..."
+              aria-label="Cari kelas"
+            />
+            <button type="submit">Cari</button>
+          </form>
+
           <div className="home-course-arrows" aria-hidden="true">
             <button type="button" tabIndex={-1}>
               ←
@@ -150,6 +190,22 @@ function CourseShowcase({
           <div className="home-course-empty-state">
             <strong>Gagal memuat course</strong>
             <p>{error}</p>
+          </div>
+        ) : normalizedSearchQuery && visibleCourses.length === 0 ? (
+          <div className="home-course-empty-state home-course-search-empty">
+            <div className="home-course-search-empty__icon" aria-hidden="true">
+              <span />
+            </div>
+            <strong>Kelas tidak ditemukan</strong>
+            <p>Coba gunakan kata kunci lain.</p>
+            <div className="home-course-empty-actions">
+              <button type="button" onClick={resetSearch}>
+                Lihat Semua Kelas
+              </button>
+              <button type="button" onClick={resetSearch}>
+                Reset Filter
+              </button>
+            </div>
           </div>
         ) : carouselCourses.length > 0 ? (
           carouselCourses.map((course, index) => (

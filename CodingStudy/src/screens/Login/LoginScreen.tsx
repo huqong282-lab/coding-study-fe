@@ -2,15 +2,15 @@ import { useNavigate } from 'react-router-dom'
 import Login from '../../components/forms/Login'
 import Register from '../../components/forms/Register'
 import { appCopy, languageOptions } from '../../data/appData'
-import type { AppRole, AuthMode, Language } from '../../types/user'
+import type { AuthMode, Language } from '../../types/user'
 
 type LoginScreenProps = {
   mode: AuthMode
   language: Language
   onModeChange: (mode: AuthMode) => void
   onLanguageChange: (language: Language) => void
-  onLogin: (credentials: { email: string; password: string; role: AppRole }) => Promise<void> | void
-  onRegister: (user: { name: string; email: string; password: string }) => Promise<void> | void
+  onLogin: (credentials: { email: string; password: string }) => Promise<void> | void
+  onRegister: (user: { name: string; email: string; password: string }) => Promise<boolean> | boolean
   authError?: string
   isAuthLoading?: boolean
 }
@@ -32,6 +32,13 @@ function LoginScreen({
   function handleModeChange(nextMode: AuthMode) {
     onModeChange(nextMode)
     navigate(nextMode === 'login' ? '/login' : '/register')
+  }
+
+  async function handleRegister(user: { name: string; email: string; password: string }) {
+    const registered = await onRegister(user)
+    if (registered) {
+      navigate('/verify-otp', { state: { email: user.email } })
+    }
   }
 
   return (
@@ -172,7 +179,7 @@ function LoginScreen({
                 <Register
                   language={language}
                   onSwitchToLogin={() => handleModeChange('login')}
-                  onRegister={onRegister}
+                  onRegister={handleRegister}
                   serverError={authError}
                   isLoading={isAuthLoading}
                 />
