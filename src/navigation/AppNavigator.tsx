@@ -260,7 +260,7 @@ function AppNavigator({
         }
       />
       <Route
-        path="/courses/:courseId/payment-complete"
+        path="/payment-complete"
         element={
           shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
@@ -268,6 +268,10 @@ function AppNavigator({
             <PaymentCompleteScreen language={language} user={currentUser} onLogout={handleLogout} />
           )
         }
+      />
+      <Route
+        path="/courses/:courseId/payment-complete"
+        element={<Navigate to="/payment-complete" replace />}
       />
       <Route
         path="/courses/:courseId/learn"
