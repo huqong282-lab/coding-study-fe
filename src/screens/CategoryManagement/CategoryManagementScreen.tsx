@@ -1,4 +1,5 @@
-import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import {
   createCategory,
   deleteCategory,
