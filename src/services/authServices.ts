@@ -9,6 +9,17 @@ export type ForgotPasswordPayload = {
   email: string
 }
 
+export type VerifyForgotPasswordPayload = {
+  email: string
+  otp: string
+}
+
+export type ResetPasswordPayload = {
+  email: string
+  password: string
+  confirmPassword: string
+}
+
 type BackendAuthUser = Omit<AppUser, 'role'> & {
   role?: string | { name?: string | null } | null
 }
@@ -56,6 +67,24 @@ export async function register(payload: RegisterPayload) {
 
 export async function requestPasswordReset(payload: ForgotPasswordPayload) {
   const response = await apiFetch<null>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+  return response.message
+}
+
+export async function verifyForgotPassword(payload: VerifyForgotPasswordPayload) {
+  const response = await apiFetch<null>('/auth/verify-forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+  return response.message
+}
+
+export async function resetPassword(payload: ResetPasswordPayload) {
+  const response = await apiFetch<null>('/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
