@@ -1,9 +1,17 @@
-import { ChangeEvent, FormEvent, ReactNode, useMemo, useState } from 'react'
+import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from 'react'
+import {
+  createCategory,
+  deleteCategory,
+  listCategories,
+  type BackendCategory,
+  updateCategory,
+} from '../../services/categoryServices'
+import { readStoredAuthSession } from '../../services/authSession'
 
 type CategoryStatus = 'Aktif' | 'Draft'
 
 type Category = {
-  id: number
+  id: string
   name: string
   slug: string
   description: string
@@ -12,17 +20,28 @@ type Category = {
   status: CategoryStatus
 }
 
-const DUMMY_CATEGORIES: Category[] = [
-  { id: 1, name: 'Web Development', slug: 'web-development', description: 'Pelajari pengembangan website modern dari dasar hingga mahir.', icon: '🌐', courseCount: 24, status: 'Aktif' },
-  { id: 2, name: 'Mobile Development', slug: 'mobile-development', description: 'Kelas untuk membangun aplikasi mobile.', icon: '📱', courseCount: 18, status: 'Aktif' },
-  { id: 3, name: 'Data Science', slug: 'data-science', description: 'Eksplorasi data, analitik, dan machine learning.', icon: '📊', courseCount: 12, status: 'Aktif' },
-  { id: 4, name: 'UI/UX Design', slug: 'ui-ux-design', description: 'Rancang pengalaman digital yang intuitif.', icon: '✦', courseCount: 9, status: 'Draft' },
-  { id: 5, name: 'Cyber Security', slug: 'cyber-security', description: 'Pahami dasar keamanan sistem dan jaringan.', icon: '🛡️', courseCount: 7, status: 'Draft' },
-]
-
 type FormValues = Pick<Category, 'name' | 'slug' | 'description' | 'status' | 'icon'>
 
 const EMPTY_FORM: FormValues = { name: '', slug: '', description: '', icon: '', status: 'Aktif' }
+
+function toSlug(value: string) {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
+
+function toCategory(category: BackendCategory): Category {
+  return {
+    id: category.id,
+    name: category.name,
+    slug: toSlug(category.name),
+    description: category.description ?? '',
+    courseCount: 0,
+    status: 'Aktif',
+  }
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Terjadi kesalahan saat memproses kategori.'
+}
 
 function SearchIcon() {
   return <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="6" /><path d="m20 20-4.2-4.2" /></svg>
@@ -45,13 +64,50 @@ type CategoryManagementScreenProps = {
 }
 
 function CategoryManagementScreen({ embedded = false }: CategoryManagementScreenProps) {
-  const [categories, setCategories] = useState(DUMMY_CATEGORIES)
+  const [categories, setCategories] = useState<Category[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'All Status' | CategoryStatus>('All Status')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [form, setForm] = useState<FormValues>(EMPTY_FORM)
   const [iconPreview, setIconPreview] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const accessToken = readStoredAuthSession()?.accessToken ?? ''
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadCategories() {
+      if (!accessToken) {
+        if (isMounted) {
+          setError('Sesi tidak ditemukan. Silakan login ulang.')
+          setIsLoading(false)
+        }
+        return
+      }
+
+      setIsLoading(true)
+      setError('')
+
+      try {
+        const result = await listCategories(accessToken)
+        if (isMounted) setCategories(result.map(toCategory))
+      } catch (requestError) {
+        if (isMounted) setError(getErrorMessage(requestError))
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    void loadCategories()
+
+    return () => {
+      isMounted = false
+    }
+  }, [accessToken])
 
   const filteredCategories = useMemo(() => {
     const keyword = search.trim().toLowerCase()
@@ -86,7 +142,7 @@ function CategoryManagementScreen({ embedded = false }: CategoryManagementScreen
     setForm((current) => ({
       ...current,
       name: value,
-      slug: editingCategory ? current.slug : value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      slug: editingCategory ? current.slug : toSlug(value),
     }))
   }
 
@@ -98,20 +154,52 @@ function CategoryManagementScreen({ embedded = false }: CategoryManagementScreen
     updateForm('icon', previewUrl)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!form.name.trim() || !form.slug.trim()) return
-
-    if (editingCategory) {
-      setCategories((current) => current.map((category) => category.id === editingCategory.id ? { ...category, ...form, name: form.name.trim(), slug: form.slug.trim() } : category))
-    } else {
-      setCategories((current) => [...current, { id: Date.now(), ...form, name: form.name.trim(), slug: form.slug.trim(), courseCount: 0 }])
+    if (!accessToken) {
+      setError('Sesi tidak ditemukan. Silakan login ulang.')
+      return
     }
-    closeModal()
+
+    setIsSubmitting(true)
+    setError('')
+
+    try {
+      const payload = { name: form.name.trim(), description: form.description.trim() || undefined }
+      const result = editingCategory
+        ? await updateCategory(editingCategory.id, payload, accessToken)
+        : await createCategory(payload, accessToken)
+      const savedCategory = toCategory(result)
+
+      setCategories((current) => editingCategory
+        ? current.map((category) => category.id === editingCategory.id ? savedCategory : category)
+        : [...current, savedCategory])
+      closeModal()
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleDelete = (id: number) => {
-    setCategories((current) => current.filter((category) => category.id !== id))
+  const handleDelete = async (id: string) => {
+    if (!accessToken) {
+      setError('Sesi tidak ditemukan. Silakan login ulang.')
+      return
+    }
+
+    setDeletingId(id)
+    setError('')
+
+    try {
+      await deleteCategory(id, accessToken)
+      setCategories((current) => current.filter((category) => category.id !== id))
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   return (
@@ -138,26 +226,30 @@ function CategoryManagementScreen({ embedded = false }: CategoryManagementScreen
             </select>
           </div>
 
+          {error && <div className="mx-5 mt-5 rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">{error}</div>}
+
           <div className="overflow-x-auto">
             <table className="min-w-[760px] w-full text-left text-sm">
               <thead className="bg-white/[0.03] text-xs uppercase tracking-wide text-slate-500">
                 <tr><th className="px-6 py-4 font-semibold">Icon</th><th className="px-3 py-4 font-semibold">Nama Kategori</th><th className="px-3 py-4 font-semibold">Slug</th><th className="px-3 py-4 font-semibold">Jumlah Kelas</th><th className="px-3 py-4 font-semibold">Status</th><th className="px-6 py-4 text-right font-semibold">Aksi</th></tr>
               </thead>
               <tbody className="divide-y divide-white/[0.07]">
-                {filteredCategories.map((category) => (
+                {isLoading ? (
+                  <tr><td colSpan={6} className="px-6 py-14 text-center text-sm text-slate-400">Memuat kategori...</td></tr>
+                ) : filteredCategories.map((category) => (
                   <tr key={category.id} className="transition hover:bg-white/[0.035]">
                     <td className="px-6 py-4"><CategoryIcon icon={category.icon} name={category.name} /></td>
                     <td className="px-3 py-4"><p className="font-semibold text-slate-100">{category.name}</p><p className="mt-1 max-w-56 truncate text-xs text-slate-500">{category.description}</p></td>
                     <td className="px-3 py-4"><code className="rounded-md bg-white/[0.06] px-2 py-1 text-xs text-slate-400">{category.slug}</code></td>
                     <td className="px-3 py-4 font-medium text-slate-300">{category.courseCount} kelas</td>
                     <td className="px-3 py-4"><StatusBadge status={category.status} /></td>
-                    <td className="px-6 py-4"><div className="flex justify-end gap-1"><IconButton label={`Edit ${category.name}`} onClick={() => openEditModal(category)}><PencilIcon /></IconButton><IconButton label={`Hapus ${category.name}`} onClick={() => handleDelete(category.id)} danger><TrashIcon /></IconButton></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-end gap-1"><IconButton label={`Edit ${category.name}`} onClick={() => openEditModal(category)}><PencilIcon /></IconButton><IconButton label={`Hapus ${category.name}`} onClick={() => void handleDelete(category.id)} danger disabled={deletingId === category.id}>{deletingId === category.id ? <span className="text-xs">...</span> : <TrashIcon />}</IconButton></div></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {filteredCategories.length === 0 && <div className="px-6 py-14 text-center"><p className="font-semibold text-slate-200">Kategori tidak ditemukan</p><p className="mt-1 text-sm text-slate-500">Coba gunakan kata kunci atau filter status lain.</p></div>}
+          {!isLoading && filteredCategories.length === 0 && <div className="px-6 py-14 text-center"><p className="font-semibold text-slate-200">Kategori tidak ditemukan</p><p className="mt-1 text-sm text-slate-500">Coba gunakan kata kunci atau filter status lain.</p></div>}
         </div>
       </section>
 
@@ -166,13 +258,14 @@ function CategoryManagementScreen({ embedded = false }: CategoryManagementScreen
           <form onSubmit={handleSubmit} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#121027] shadow-2xl">
             <div className="flex items-start justify-between border-b border-white/10 px-6 py-5"><div><h2 id="category-modal-title" className="text-xl font-bold text-white">{editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}</h2><p className="mt-1 text-sm text-slate-400">Lengkapi informasi kategori kelas.</p></div><button type="button" onClick={closeModal} className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Tutup modal">✕</button></div>
             <div className="space-y-5 px-6 py-5">
+              {error && <div className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert">{error}</div>}
               <Field label="Nama Kategori" required><input required value={form.name} onChange={(event) => handleNameChange(event.target.value)} placeholder="Contoh: Web Development" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15" /></Field>
               <Field label="Slug" required><input required value={form.slug} onChange={(event) => updateForm('slug', event.target.value)} placeholder="web-development" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15" /></Field>
               <Field label="Deskripsi"><textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Deskripsi singkat kategori" rows={3} className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15 resize-none" /></Field>
               <Field label="Upload Icon"><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/15 p-3 transition hover:border-violet-400 hover:bg-violet-500/10"><CategoryIcon icon={iconPreview} name={form.name || 'Kategori'} small /><span className="flex-1"><span className="block text-sm font-medium text-slate-200">Pilih gambar icon</span><span className="mt-0.5 block text-xs text-slate-500">PNG, JPG, atau SVG (maks. 2MB)</span></span><span className="rounded-lg bg-white/10 p-2 text-slate-400 [&>svg]:h-5 [&>svg]:w-5"><ImageIcon /></span><input type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={handleIconUpload} className="sr-only" /></label></Field>
               <div className="flex items-center justify-between rounded-xl bg-white/[0.04] p-4"><div><p className="text-sm font-semibold text-slate-200">Status Aktif</p><p className="mt-0.5 text-xs text-slate-500">Kategori aktif dapat ditampilkan pada kelas.</p></div><button type="button" role="switch" aria-checked={form.status === 'Aktif'} onClick={() => updateForm('status', form.status === 'Aktif' ? 'Draft' : 'Aktif')} className={`relative h-6 w-11 rounded-full transition ${form.status === 'Aktif' ? 'bg-violet-600' : 'bg-slate-600'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${form.status === 'Aktif' ? 'left-6' : 'left-1'}`} /></button></div>
             </div>
-            <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4"><button type="button" onClick={closeModal} className="h-10 rounded-xl border border-white/10 px-4 text-sm font-semibold text-slate-300 hover:bg-white/5">Batal</button><button type="submit" className="h-10 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">{editingCategory ? 'Simpan Perubahan' : 'Tambah Kategori'}</button></div>
+            <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4"><button type="button" onClick={closeModal} disabled={isSubmitting} className="h-10 rounded-xl border border-white/10 px-4 text-sm font-semibold text-slate-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60">Batal</button><button type="submit" disabled={isSubmitting} className="h-10 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60">{isSubmitting ? 'Menyimpan...' : editingCategory ? 'Simpan Perubahan' : 'Tambah Kategori'}</button></div>
           </form>
         </div>
       )}
@@ -195,8 +288,8 @@ function StatusBadge({ status }: { status: CategoryStatus }) {
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${active ? 'bg-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/25' : 'bg-amber-500/10 text-amber-300 ring-1 ring-inset ring-amber-400/25'}`}>{status}</span>
 }
 
-function IconButton({ label, onClick, danger, children }: { label: string; onClick: () => void; danger?: boolean; children: ReactNode }) {
-  return <button type="button" aria-label={label} title={label} onClick={onClick} className={`grid h-9 w-9 place-items-center rounded-lg transition [&>svg]:h-4 [&>svg]:w-4 ${danger ? 'text-rose-400 hover:bg-rose-500/10' : 'text-violet-300 hover:bg-violet-500/10'}`}>{children}</button>
+function IconButton({ label, onClick, danger, disabled, children }: { label: string; onClick: () => void; danger?: boolean; disabled?: boolean; children: ReactNode }) {
+  return <button type="button" aria-label={label} title={label} onClick={onClick} disabled={disabled} className={`grid h-9 w-9 place-items-center rounded-lg transition disabled:cursor-not-allowed disabled:opacity-60 [&>svg]:h-4 [&>svg]:w-4 ${danger ? 'text-rose-400 hover:bg-rose-500/10' : 'text-violet-300 hover:bg-violet-500/10'}`}>{children}</button>
 }
 
 export default CategoryManagementScreen
