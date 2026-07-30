@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import type { ChangeEvent, FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../services/api'
 import { requestPasswordReset } from '../../services/authServices'
 
@@ -20,7 +21,7 @@ const resetSteps = [
   {
     number: '2',
     title: 'Cek inbox kamu',
-    description: 'Kode OTP reset berlaku selama 30 menit.',
+    description: 'Kode OTP reset berlaku selama 10 menit.',
   },
   {
     number: '3',
@@ -30,6 +31,7 @@ const resetSteps = [
 ]
 
 function ForgotPasswordScreen() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(initialForm)
   const [submitted, setSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -44,14 +46,14 @@ function ForgotPasswordScreen() {
     return ''
   }, [form.email])
 
-  function updateEmail(event: React.ChangeEvent<HTMLInputElement>) {
+  function updateEmail(event: ChangeEvent<HTMLInputElement>) {
     setForm({ email: event.target.value })
     setSubmitted(false)
     setStatusMessage('')
     setServerError('')
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
     setStatusMessage('')
@@ -65,12 +67,16 @@ function ForgotPasswordScreen() {
 
     try {
       const message = await requestPasswordReset({ email: form.email.trim() })
-      setStatusMessage(message || 'Tautan reset berhasil dikirim ke email kamu.')
+      setStatusMessage(message || 'Kode OTP reset berhasil dikirim ke email kamu.')
+      navigate('/forgot-password/verify', {
+        replace: true,
+        state: { email: form.email.trim() },
+      })
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Gagal mengirim tautan reset. Coba lagi sebentar lagi.',
+          : 'Gagal mengirim OTP reset. Coba lagi sebentar lagi.',
       )
     } finally {
       setIsLoading(false)
@@ -181,7 +187,7 @@ function ForgotPasswordScreen() {
                 type="submit"
                 disabled={isLoading}
               >
-                {isLoading ? 'Mengirim...' : 'Kirim tautan reset'}
+                {isLoading ? 'Mengirim...' : 'Kirim OTP reset'}
               </button>
             </form>
 
