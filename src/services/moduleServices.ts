@@ -1,5 +1,4 @@
-import { ApiError, type ApiResponse } from './api'
-import { env } from '../config/env'
+import { apiFetch } from './api'
 
 export type BackendModule = {
   id: string
@@ -28,36 +27,8 @@ export type UpdateModulePayload = Partial<{
   videoUrl: string | null
 }>
 
-function getModuleBaseUrl() {
-  return env.apiBaseUrl.replace(/\/api\/?$/, '')
-}
-
-async function moduleFetch<T>(path: string, options: RequestInit & { token?: string } = {}) {
-  const headers = new Headers(options.headers)
-
-  if (!headers.has('Content-Type') && options.body) {
-    headers.set('Content-Type', 'application/json')
-  }
-
-  if (options.token) {
-    headers.set('Authorization', `Bearer ${options.token}`)
-  }
-
-  const response = await fetch(`${getModuleBaseUrl()}${path}`, {
-    ...options,
-    headers,
-  })
-  const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null
-
-  if (!response.ok || payload?.success === false) {
-    throw new ApiError(payload?.message || 'Request failed', response.status, payload?.errors)
-  }
-
-  return payload as ApiResponse<T>
-}
-
 export async function listModules(classId: string, token: string) {
-  const response = await moduleFetch<BackendModule[]>(
+  const response = await apiFetch<BackendModule[]>(
     `/modules?classId=${encodeURIComponent(classId)}&limit=100`,
     { token },
   )
@@ -66,7 +37,7 @@ export async function listModules(classId: string, token: string) {
 }
 
 export async function createModule(payload: CreateModulePayload, token: string) {
-  const response = await moduleFetch<BackendModule>('/modules', {
+  const response = await apiFetch<BackendModule>('/modules', {
     method: 'POST',
     body: JSON.stringify(payload),
     token,
@@ -80,7 +51,7 @@ export async function createModule(payload: CreateModulePayload, token: string) 
 }
 
 export async function updateModule(moduleId: string, payload: UpdateModulePayload, token: string) {
-  const response = await moduleFetch<BackendModule>(`/modules/${moduleId}`, {
+  const response = await apiFetch<BackendModule>(`/modules/${moduleId}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
     token,
@@ -94,7 +65,7 @@ export async function updateModule(moduleId: string, payload: UpdateModulePayloa
 }
 
 export async function deleteModule(moduleId: string, token: string) {
-  await moduleFetch<null>(`/modules/${moduleId}`, {
+  await apiFetch<null>(`/modules/${moduleId}`, {
     method: 'DELETE',
     token,
   })

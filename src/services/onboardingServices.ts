@@ -18,7 +18,7 @@ function getResponseData<T>(response: unknown): T | undefined {
 }
 
 export async function getOnboardingCategories() {
-  const response = await apiFetch<OnboardingCategory[]>('/onboarding/categories')
+  const response = await apiFetch<OnboardingCategory[]>('/categories?limit=100')
   const categories = getResponseData<OnboardingCategory[]>(response)
 
   if (!categories) {

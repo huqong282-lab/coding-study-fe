@@ -10,6 +10,8 @@ import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCre
 import MentorModuleManagementScreen from '../screens/MentorModuleManagement/MentorModuleManagementScreen'
 import PaymentCompleteScreen from '../screens/PaymentComplete/PaymentCompleteScreen'
 import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
+import ForgotPasswordOtpScreen from '../screens/ForgotPassword/ForgotPasswordOtpScreen'
+import ResetPasswordScreen from '../screens/ForgotPassword/ResetPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
@@ -123,6 +125,14 @@ function AppNavigator({
       <Route
         path="/forgot-password"
         element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordScreen />}
+      />
+      <Route
+        path="/forgot-password/verify"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordOtpScreen />}
+      />
+      <Route
+        path="/forgot-password/reset"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ResetPasswordScreen />}
       />
       <Route path="/verify-otp" element={<OtpVerificationScreen />} />
       <Route
@@ -260,7 +270,7 @@ function AppNavigator({
         }
       />
       <Route
-        path="/courses/:courseId/payment-complete"
+        path="/payment-complete"
         element={
           shouldCompleteLanguageSelection ? (
             <Navigate to="/language-selection" replace />
@@ -268,6 +278,10 @@ function AppNavigator({
             <PaymentCompleteScreen language={language} user={currentUser} onLogout={handleLogout} />
           )
         }
+      />
+      <Route
+        path="/courses/:courseId/payment-complete"
+        element={<Navigate to="/payment-complete" replace />}
       />
       <Route
         path="/courses/:courseId/learn"
