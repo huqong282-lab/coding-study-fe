@@ -187,6 +187,7 @@ function AppNavigator({
             <DashboardStudent
               user={currentUser}
               selectedProgrammingLanguages={selectedProgrammingLanguages}
+              accessToken={accessToken}
               onLogout={handleLogout}
             />
           )

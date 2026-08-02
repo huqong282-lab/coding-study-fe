@@ -1,24 +1,33 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
-import type { Course } from '../../types/product'
 import type { AppUser } from '../../types/user'
-import { useCourseCatalog } from '../../hooks/useCourseCatalog'
+import {
+  listClassModuleProgress,
+  listMyCourses,
+  summarizeClassProgress,
+  type MyCourseRecord,
+} from '../../services/myCourseServices'
 
 type DashboardStudentProps = {
   user?: AppUser | null
   selectedProgrammingLanguages?: string[]
+  accessToken?: string
   onLogout?: () => void
 }
 
 type DashboardView = 'overview' | 'courses'
 type CourseFilter = 'all' | 'premium' | 'free' | 'started' | 'finished'
 
-type EnrolledCourse = Course & {
+type EnrolledCourse = MyCourseRecord & {
+  access: 'free' | 'paid'
   progress: number
   lessonsFinished: number
   learningMinutes: number
+  totalModules: number
+  completedModules: number
+  stage: 'started' | 'finished'
 }
 
 const courseFilters: { id: CourseFilter; label: string }[] = [
@@ -27,35 +36,6 @@ const courseFilters: { id: CourseFilter; label: string }[] = [
   { id: 'free', label: 'Free' },
   { id: 'started', label: 'Berjalan' },
   { id: 'finished', label: 'Selesai' },
-]
-
-const sidebarSections = [
-  {
-    title: 'Menu Utama',
-    items: [
-      { label: 'Beranda', active: true },
-      { label: 'Kelas Saya', badge: '3' },
-      { label: 'Jelajahi Kelas' },
-      { label: 'Roadmap' },
-      { label: 'Latihan Soal' },
-    ],
-  },
-  {
-    title: 'Komunitas',
-    items: [
-      { label: 'Forum Diskusi', badge: '12' },
-      { label: 'Leaderboard' },
-      { label: 'Study Group' },
-    ],
-  },
-  {
-    title: 'Akun',
-    items: [
-      { label: 'Profil Saya' },
-      { label: 'Sertifikat' },
-      { label: 'Pengaturan' },
-    ],
-  },
 ]
 
 const activityItems = [
@@ -84,66 +64,183 @@ const certificateItems = [
   { title: 'Python Fundamental', date: 'Diterbitkan 10 Mar 2026', icon: 'Py' },
 ]
 
-function buildEnrolledCourses(courses: Course[], selectedLanguages: string[]): EnrolledCourse[] {
-  if (selectedLanguages.length === 0) {
-    return []
-  }
+function formatPurchasedAt(dateValue: string) {
+  return new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(dateValue))
+}
 
-  return courses
-    .filter((course) => selectedLanguages.includes(course.languageId))
-    .slice(0, 4)
-    .map((course, index) => {
-      const progress = [68, 91, 32, 15][index] ?? 22
-      const lessonsFinished = Math.max(1, Math.round((course.modules * progress) / 100))
+function getEnrolledCourseAccess(priceLabel: string): 'free' | 'paid' {
+  return Number(priceLabel) > 0 ? 'paid' : 'free'
+}
 
-      return {
-        ...course,
-        progress,
-        lessonsFinished,
-        learningMinutes: 85 + index * 45,
+async function loadEnrolledCourses(accessToken: string): Promise<EnrolledCourse[]> {
+  const myCourses = await listMyCourses(accessToken)
+
+  const enrolledCourses = await Promise.all(
+    myCourses.map(async (item) => {
+      try {
+        const modules = await listClassModuleProgress(item.course.id, accessToken)
+        const summary = summarizeClassProgress(modules)
+
+        return {
+          ...item,
+          access: getEnrolledCourseAccess(item.course.price),
+          progress: summary.progress,
+          lessonsFinished: summary.completedModules,
+          learningMinutes: summary.learningMinutes,
+          totalModules: summary.totalModules,
+          completedModules: summary.completedModules,
+          stage: summary.stage,
+        }
+      } catch {
+        return {
+          ...item,
+          access: getEnrolledCourseAccess(item.course.price),
+          progress: 0,
+          lessonsFinished: 0,
+          learningMinutes: 0,
+          totalModules: 0,
+          completedModules: 0,
+          stage: 'started',
+        }
       }
-    })
+    }),
+  )
+
+  return enrolledCourses
 }
 
 function DashboardStudent({
   user,
   selectedProgrammingLanguages = [],
+  accessToken,
   onLogout,
 }: DashboardStudentProps) {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const tabParam = searchParams.get('tab')
   const activeView: DashboardView = tabParam === 'courses' ? 'courses' : 'overview'
   const [activeFilter, setActiveFilter] = useState<CourseFilter>('all')
-  const { courses: courseCatalog, isLoading, error } = useCourseCatalog()
-  const enrolledCourses = useMemo(
-    () => buildEnrolledCourses(courseCatalog, selectedProgrammingLanguages),
-    [courseCatalog, selectedProgrammingLanguages],
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([])
+  const [animatedProgress, setAnimatedProgress] = useState<Record<string, number>>({})
+  const [isCoursesLoading, setIsCoursesLoading] = useState(false)
+  const [coursesError, setCoursesError] = useState('')
+
+  useEffect(() => {
+    let isActive = true
+
+    async function fetchEnrolledCourses() {
+      if (!accessToken) {
+        if (isActive) {
+          setEnrolledCourses([])
+          setCoursesError('')
+          setIsCoursesLoading(false)
+        }
+        return
+      }
+
+      setIsCoursesLoading(true)
+      setCoursesError('')
+
+      try {
+        const result = await loadEnrolledCourses(accessToken)
+
+        if (isActive) {
+          setEnrolledCourses(result)
+        }
+      } catch (requestError) {
+        if (isActive) {
+          const message =
+            requestError instanceof Error ? requestError.message : 'Gagal memuat kelas milik student'
+          setCoursesError(message)
+          setEnrolledCourses([])
+        }
+      } finally {
+        if (isActive) {
+          setIsCoursesLoading(false)
+        }
+      }
+    }
+
+    void fetchEnrolledCourses()
+
+    return () => {
+      isActive = false
+    }
+  }, [accessToken])
+
+  useEffect(() => {
+    if (enrolledCourses.length === 0) {
+      setAnimatedProgress({})
+      return
+    }
+
+    setAnimatedProgress(
+      Object.fromEntries(enrolledCourses.map((course) => [course.enrollmentId, 0])),
+    )
+
+    const duration = 900
+    const startedAt = performance.now()
+    let frameId = 0
+
+    function animate(now: number) {
+      const elapsed = now - startedAt
+      const progressRatio = Math.min(elapsed / duration, 1)
+      const easedRatio = 1 - Math.pow(1 - progressRatio, 3)
+
+      setAnimatedProgress(
+        Object.fromEntries(
+          enrolledCourses.map((course) => [
+            course.enrollmentId,
+            Math.round(course.progress * easedRatio),
+          ]),
+        ),
+      )
+
+      if (progressRatio < 1) {
+        frameId = window.requestAnimationFrame(animate)
+      }
+    }
+
+    frameId = window.requestAnimationFrame(animate)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+    }
+  }, [enrolledCourses])
+
+  const visibleCourses = useMemo(
+    () =>
+      enrolledCourses.filter((course) => {
+        if (activeFilter === 'premium') {
+          return course.access === 'paid'
+        }
+
+        if (activeFilter === 'free') {
+          return course.access === 'free'
+        }
+
+        if (activeFilter === 'started') {
+          return course.stage === 'started'
+        }
+
+        if (activeFilter === 'finished') {
+          return course.stage === 'finished'
+        }
+
+        return true
+      }),
+    [activeFilter, enrolledCourses],
   )
-
-  const visibleCourses = enrolledCourses.filter((course) => {
-    if (activeFilter === 'premium') {
-      return course.access === 'paid'
-    }
-
-    if (activeFilter === 'free') {
-      return course.access === 'free'
-    }
-
-    if (activeFilter === 'started') {
-      return course.progress > 0 && course.progress < 100
-    }
-
-    if (activeFilter === 'finished') {
-      return course.progress === 100
-    }
-
-    return true
-  })
 
   const stats = {
     myCourses: enrolledCourses.length,
     lessonsFinished: enrolledCourses.reduce((total, course) => total + course.lessonsFinished, 0),
     learningTime: enrolledCourses.reduce((total, course) => total + course.learningMinutes, 0),
+    finishedCourses: enrolledCourses.filter((course) => course.stage === 'finished').length,
   }
 
   const firstName = user?.name.trim().split(' ')[0] || 'Learner'
@@ -156,43 +253,72 @@ function DashboardStudent({
         .toUpperCase()
     : 'RH'
 
-  const coursesPanelContent = isLoading ? (
+  const sidebarMenuItems = [
+    {
+      label: 'Beranda',
+      isActive: activeView === 'overview',
+      onClick: () => navigate('/dashboard'),
+    },
+    {
+      label: 'Kelas Saya',
+      isActive: activeView === 'courses',
+      onClick: () => navigate('/dashboard?tab=courses'),
+    },
+  ]
+
+  const coursesPanelContent = isCoursesLoading ? (
     <div className="student-empty-state">
       <strong>Memuat course dari backend</strong>
       <p>Dashboard sedang menarik data course terbaru.</p>
     </div>
-  ) : error ? (
+  ) : coursesError ? (
     <div className="student-empty-state">
       <strong>Gagal memuat course</strong>
-      <p>{error}</p>
+      <p>{coursesError}</p>
     </div>
   ) : visibleCourses.length > 0 ? (
     <div className="student-course-list">
       {visibleCourses.map((course) => (
-        <article className="student-course-card" key={course.id}>
+        <button
+          className="student-course-card student-course-card--clickable"
+          key={course.enrollmentId}
+          type="button"
+          onClick={() => navigate(`/courses/${course.course.id}/learn`)}
+          aria-label={`Buka kelas ${course.course.title}`}
+        >
           <div className="student-course-card__header">
             <span className="course-tag">{course.access === 'paid' ? 'Premium' : 'Free'}</span>
-            <strong>{course.progress}%</strong>
+            <strong>{animatedProgress[course.enrollmentId] ?? 0}%</strong>
           </div>
-          <h3>{course.title}</h3>
-          <p>{course.description}</p>
+          <h3>{course.course.title}</h3>
+          <p>{course.course.description}</p>
           <div className="student-course-meta">
             <span>
-              {course.lessonsFinished}/{course.modules} lessons
+              {course.course.mentor.name}
             </span>
-            <span>{course.learningMinutes} menit</span>
-            <span>{course.progress === 100 ? 'Finished' : 'Started'}</span>
+            <span>{course.course.category.name}</span>
+            <span>{formatPurchasedAt(course.purchasedAt)}</span>
           </div>
-          <div className="student-progress-track" aria-label={`${course.progress}% progress`}>
-            <span style={{ width: `${course.progress}%` }} />
+          <div
+            className="student-progress-track"
+            aria-label={`${animatedProgress[course.enrollmentId] ?? course.progress}% progress`}
+          >
+            <span style={{ width: `${animatedProgress[course.enrollmentId] ?? 0}%` }} />
           </div>
-        </article>
+          <div className="student-course-meta">
+            <span>
+              {course.completedModules}/{course.totalModules || course.completedModules || 0} modul selesai
+            </span>
+            <span>{course.learningMinutes} menit belajar</span>
+            <span>{course.stage === 'finished' ? 'Finished' : 'Started'}</span>
+          </div>
+        </button>
       ))}
     </div>
   ) : (
     <div className="student-empty-state">
-      <strong>Kamu belum mengikuti kelas</strong>
-      <p>Pilih kelas dari halaman Library dulu, nanti kelas yang kamu ikuti akan muncul di sini.</p>
+      <strong>Kamu belum punya kelas yang terhubung</strong>
+      <p>Kelas yang sudah kamu beli akan muncul di sini setelah enrollment berhasil dibuat di backend.</p>
     </div>
   )
 
@@ -208,23 +334,22 @@ function DashboardStudent({
             </div>
           </div>
 
-          {sidebarSections.map((section) => (
-            <div className="student-dashboard-nav-group" key={section.title}>
-              <p className="student-dashboard-nav-title">{section.title}</p>
-              <nav className="student-dashboard-nav" aria-label={section.title}>
-                {section.items.map((item) => (
-                  <button
-                    className={`student-dashboard-nav-item ${item.active ? 'is-active' : ''}`}
-                    type="button"
-                    key={item.label}
-                  >
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          ))}
+          <div className="student-dashboard-nav-group">
+            <p className="student-dashboard-nav-title">Menu Utama</p>
+            <nav className="student-dashboard-nav" aria-label="Menu Utama">
+              {sidebarMenuItems.map((item) => (
+                <button
+                  className={`student-dashboard-nav-item ${item.isActive ? 'is-active' : ''}`}
+                  type="button"
+                  key={item.label}
+                  onClick={item.onClick}
+                >
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+            <p className="student-dashboard-nav-disclaimer">Disclaimer: ini hanya di student dashboard.</p>
+          </div>
 
           <div className="student-dashboard-sidebar-footer">
             <div className="student-dashboard-user">
@@ -286,9 +411,9 @@ function DashboardStudent({
 
           <section className="student-dashboard-stats-grid" aria-label="Ringkasan statistik">
             <article className="student-dashboard-stat-card">
-              <p>KELAS SELESAI</p>
-              <strong>7</strong>
-              <span>+2 bulan ini</span>
+              <p>KELAS TERHUBUNG</p>
+              <strong>{stats.myCourses}</strong>
+              <span>{stats.finishedCourses} selesai</span>
             </article>
             <article className="student-dashboard-stat-card">
               <p>JAM BELAJAR</p>
@@ -296,9 +421,9 @@ function DashboardStudent({
               <span>+18 jam minggu ini</span>
             </article>
             <article className="student-dashboard-stat-card">
-              <p>SERTIFIKAT</p>
-              <strong>5</strong>
-              <span>2 dalam progress</span>
+              <p>MODUL SELESAI</p>
+              <strong>{stats.lessonsFinished}</strong>
+              <span>Total modul yang sudah selesai</span>
             </article>
             <article className="student-dashboard-stat-card">
               <p>STREAK HARIAN</p>
