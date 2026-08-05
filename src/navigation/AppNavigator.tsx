@@ -10,6 +10,8 @@ import MentorClassCreateScreen from '../screens/MentorClassCreate/MentorClassCre
 import MentorModuleManagementScreen from '../screens/MentorModuleManagement/MentorModuleManagementScreen'
 import PaymentCompleteScreen from '../screens/PaymentComplete/PaymentCompleteScreen'
 import ForgotPasswordScreen from '../screens/ForgotPassword/ForgotPasswordScreen'
+import ForgotPasswordOtpScreen from '../screens/ForgotPassword/ForgotPasswordOtpScreen'
+import ResetPasswordScreen from '../screens/ForgotPassword/ResetPasswordScreen'
 import HomeScreen from '../screens/Home/HomeScreen'
 import LanguageSelectionScreen from '../screens/LanguageSelection/LanguageSelectionScreen'
 import LoginScreen from '../screens/Login/LoginScreen'
@@ -124,6 +126,14 @@ function AppNavigator({
         path="/forgot-password"
         element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordScreen />}
       />
+      <Route
+        path="/forgot-password/verify"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ForgotPasswordOtpScreen />}
+      />
+      <Route
+        path="/forgot-password/reset"
+        element={isAuthenticated ? <Navigate to={postAuthRedirectPath} replace /> : <ResetPasswordScreen />}
+      />
       <Route path="/verify-otp" element={<OtpVerificationScreen />} />
       <Route
         path="/language-selection"
@@ -177,6 +187,7 @@ function AppNavigator({
             <DashboardStudent
               user={currentUser}
               selectedProgrammingLanguages={selectedProgrammingLanguages}
+              accessToken={accessToken}
               onLogout={handleLogout}
             />
           )

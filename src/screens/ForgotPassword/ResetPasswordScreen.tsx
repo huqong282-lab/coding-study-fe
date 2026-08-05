@@ -1,56 +1,81 @@
-import { useMemo, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../services/api'
-import { requestPasswordReset } from '../../services/authServices'
+import { resetPassword } from '../../services/authServices'
 
-type ForgotPasswordForm = {
-  email: string
+type ResetPasswordLocationState = {
+  email?: string
+  verified?: boolean
 }
 
-const initialForm: ForgotPasswordForm = {
-  email: '',
+type ResetPasswordForm = {
+  password: string
+  confirmPassword: string
 }
 
-const resetSteps = [
-  {
-    number: '1',
-    title: 'Masukkan email',
-    description: 'Gunakan email akun manual, bukan Google Account.',
-  },
-  {
-    number: '2',
-    title: 'Cek inbox kamu',
-    description: 'Kode OTP reset berlaku selama 10 menit.',
-  },
-  {
-    number: '3',
-    title: 'Buat password baru',
-    description: 'Minimal 8 karakter, lalu masuk kembali.',
-  },
-]
+const initialForm: ResetPasswordForm = {
+  password: '',
+  confirmPassword: '',
+}
 
-function ForgotPasswordScreen() {
+function ResetPasswordScreen() {
+  const location = useLocation()
   const navigate = useNavigate()
+  const state = location.state as ResetPasswordLocationState | null
+  const email = typeof state?.email === 'string' ? state.email.trim() : ''
+  const isVerified = Boolean(state?.verified)
   const [form, setForm] = useState(initialForm)
   const [submitted, setSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [serverError, setServerError] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
 
-  const emailError = useMemo(() => {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      return 'Masukkan email yang valid.'
+  const passwordError = useMemo(() => {
+    if (form.password.length < 8) {
+      return 'Password minimal 8 karakter.'
     }
 
     return ''
-  }, [form.email])
+  }, [form.password])
 
-  function updateEmail(event: ChangeEvent<HTMLInputElement>) {
-    setForm({ email: event.target.value })
+  const confirmPasswordError = useMemo(() => {
+    if (!form.confirmPassword) {
+      return 'Konfirmasi password wajib diisi.'
+    }
+
+    if (form.password !== form.confirmPassword) {
+      return 'Password dan konfirmasi password harus sama.'
+    }
+
+    return ''
+  }, [form.confirmPassword, form.password])
+
+  useEffect(() => {
+    if (!email || !isVerified) {
+      navigate('/forgot-password', { replace: true })
+    }
+  }, [email, isVerified, navigate])
+
+  useEffect(() => {
+    if (!isSuccess) {
+      return undefined
+    }
+
+    const timerId = window.setTimeout(() => {
+      navigate('/login', { replace: true })
+    }, 1400)
+
+    return () => window.clearTimeout(timerId)
+  }, [isSuccess, navigate])
+
+  function updateField(field: keyof ResetPasswordForm, value: string) {
+    setForm((current) => ({ ...current, [field]: value }))
     setSubmitted(false)
     setStatusMessage('')
     setServerError('')
+    setIsSuccess(false)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -59,28 +84,34 @@ function ForgotPasswordScreen() {
     setStatusMessage('')
     setServerError('')
 
-    if (emailError) {
+    if (passwordError || confirmPasswordError) {
       return
     }
 
     setIsLoading(true)
 
     try {
-      const message = await requestPasswordReset({ email: form.email.trim() })
-      setStatusMessage(message || 'Kode OTP reset berhasil dikirim ke email kamu.')
-      navigate('/forgot-password/verify', {
-        replace: true,
-        state: { email: form.email.trim() },
+      const message = await resetPassword({
+        email,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
       })
+
+      setStatusMessage(message || 'Password berhasil direset. Silakan login kembali.')
+      setIsSuccess(true)
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Gagal mengirim OTP reset. Coba lagi sebentar lagi.',
+          : 'Gagal mereset password. Coba lagi sebentar lagi.',
       )
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!email || !isVerified) {
+    return null
   }
 
   return (
@@ -104,42 +135,16 @@ function ForgotPasswordScreen() {
                   Reset akses akun
                 </p>
                 <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
-                  Lupa <span className="text-violet-400">Password</span> kamu?
+                  Buat <span className="text-violet-400">password baru</span>
                 </h1>
                 <p className="mt-5 max-w-lg text-base leading-8 text-slate-300 sm:text-lg">
-                  Tenang, itu bisa terjadi. Masukkan email yang terdaftar dan kami kirimkan kode OTP
-                  untuk membuat password baru.
+                  Email <span className="font-semibold text-white">{email}</span> sudah terverifikasi. Sekarang buat password baru untuk akun kamu.
                 </p>
-              </div>
-
-              <div className="mt-10 grid max-w-xl gap-4 animate-auth-fade-up [animation-delay:120ms]">
-                {resetSteps.map((step, index) => (
-                  <div
-                    className={`flex items-center gap-4 rounded-xl border px-4 py-4 ${
-                      index === 0
-                        ? 'border-violet-400/60 bg-violet-500/8'
-                        : 'border-white/10 bg-white/[0.03]'
-                    }`}
-                    key={step.number}
-                  >
-                    <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-black ${
-                        index === 0 ? 'bg-violet-500 text-white' : 'bg-violet-500/10 text-violet-300/60'
-                      }`}
-                    >
-                      {step.number}
-                    </span>
-                    <div className="min-w-0">
-                      <strong className="block text-sm font-black text-white">{step.title}</strong>
-                      <p className="mt-1 text-sm text-slate-400">{step.description}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 
             <p className="relative max-w-xl text-sm leading-6 text-slate-500">
-              Pastikan akun kamu terdaftar secara manual, bukan melalui Google Account.
+              Pastikan password baru kuat dan belum pernah dipakai sebelumnya.
             </p>
           </div>
         </section>
@@ -147,27 +152,42 @@ function ForgotPasswordScreen() {
         <section className="flex items-center justify-center px-6 py-12 sm:px-10 lg:px-16">
           <div className="w-full max-w-md animate-auth-fade-up">
             <p className="text-xs font-bold uppercase tracking-[0.32em] text-slate-500">
-              Langkah 1 dari 3
+              Langkah 3 dari 3
             </p>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-white">Reset password</h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">
-              Masukkan email yang kamu gunakan untuk mendaftar.
+              Masukkan password baru untuk akun kamu.
             </p>
 
-            <form className="mt-8 grid gap-6" onSubmit={handleSubmit} noValidate>
+            <form className="mt-8 grid gap-5" onSubmit={handleSubmit} noValidate>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-300">Email</span>
+                <span className="text-sm font-medium text-slate-300">Password baru</span>
                 <input
                   className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={updateEmail}
-                  placeholder="nama@email.com"
-                  autoComplete="email"
-                  aria-invalid={Boolean(submitted && emailError)}
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={(event) => updateField('password', event.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  autoComplete="new-password"
+                  aria-invalid={Boolean(submitted && passwordError)}
                 />
-                {submitted && emailError && <small className="text-sm text-rose-300">{emailError}</small>}
+                {submitted && passwordError && <small className="text-sm text-rose-300">{passwordError}</small>}
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-300">Konfirmasi password</span>
+                <input
+                  className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-400/70 focus:ring-4 focus:ring-violet-400/10"
+                  type="password"
+                  name="confirmPassword"
+                  value={form.confirmPassword}
+                  onChange={(event) => updateField('confirmPassword', event.target.value)}
+                  placeholder="Ulangi password baru"
+                  autoComplete="new-password"
+                  aria-invalid={Boolean(submitted && confirmPasswordError)}
+                />
+                {submitted && confirmPasswordError && <small className="text-sm text-rose-300">{confirmPasswordError}</small>}
               </label>
 
               {(statusMessage || serverError) && (
@@ -187,14 +207,14 @@ function ForgotPasswordScreen() {
                 type="submit"
                 disabled={isLoading}
               >
-                {isLoading ? 'Mengirim...' : 'Kirim OTP reset'}
+                {isLoading ? 'Menyimpan...' : 'Simpan password baru'}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-300">
-              Sudah ingat password?{' '}
+              Kembali ke{' '}
               <Link className="font-bold text-violet-400 transition hover:text-violet-300" to="/login">
-                Masuk di sini
+                login
               </Link>
             </p>
           </div>
@@ -204,4 +224,4 @@ function ForgotPasswordScreen() {
   )
 }
 
-export default ForgotPasswordScreen
+export default ResetPasswordScreen
